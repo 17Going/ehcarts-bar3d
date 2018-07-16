@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script>
+        window.__DEV__ = false;
+    </script>
+    <!-- <script src="../../dist/echarts.all.js"></script> -->
+    <!-- <script src="https://cdn.bootcss.com/echarts/3.8.4/echarts.js"></script> -->
+    <script src="../ext-libs-zh.min.js"></script>
+    <script src='../../dist/echarts-bar3d.js'></script>
+</head>
+
+<body>
+    <style>
+        html,
+        body,
+        #main {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+
+        #main {
+            width: 800px;
+            height: 400px;
+        }
+    </style>
+    <div id="main"></div>
+</body>
+<script>
+    require(['echarts-bar3d'], function () {
+        var chart = _echarts3.init(document.getElementById('main'), null, {
+            renderer: 'canvas'
+        });
+        function getData() {
+            return [Math.floor(400 * Math.random()),
+            Math.floor(400 * Math.random()),
+            Math.floor(400 * Math.random()),
+            Math.floor(400 * Math.random()),
+            Math.floor(400 * Math.random()),
+            Math.floor(400 * Math.random()),
+            Math.floor(400 * Math.random())]
+        }
+
+        function getAData() {
+            return [Math.floor(400 * Math.random()),
+            -Math.floor(400 * Math.random()),
+            Math.floor(400 * Math.random()),
+            -Math.floor(400 * Math.random()),
+            Math.floor(400 * Math.random()),
+            -Math.floor(400 * Math.random()),
+            Math.floor(400 * Math.random())]
+        }
+        var option = {
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    data: [820, 932, 901, 934, 1290, 1330, 1320],
+                    type: 'bar3d',
+                    itemStyle: {
+                        normal: {
+                            areaStyle: {
+                                color: 'red'
+                            }
+                        }
+                    }
+
+                }
+            ]
+        };
+
+        chart.setOption(option);
+    })
+</script>
+
+</html>

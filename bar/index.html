@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>2.5D柱状图例子</title>
+    <link href="https://cdn.bootcss.com/bootstrap/4.1.1/css/bootstrap.css" rel="stylesheet">
+    <script src="jquery.js"></script>
+    <script>
+        window.__DEV__ = false;
+    </script>
+    <script src="https://cdn.bootcss.com/echarts/3.8.4/echarts.js"></script>
+    <script src='../dist/echarts-bar3d.js'></script>
+</head>
+
+<body class="bg-dark">
+    <script>
+        var v = new Date().getTime();
+        var clickFn = function (type) {
+            v++;
+            oldType = type;
+            var map2Url = {
+                1: './example/exa1.html?t=' + v,
+                11: './example/exa1.1.html?t=' + v,
+                12: './example/exa1.2.html?t=' + v,
+                13: './example/exa1.3.html?t=' + v,
+                14: './example/exa1.4.html?t=' + v,
+                15: './example/exa1.5.html?t=' + v,
+                16: './example/exa1.6.html?t=' + v,
+                17: './example/exa1.7.html?t=' + v,
+                18: './example/exa1.8.html?t=' + v,
+                19: './example/exa1.9.html?t=' + v,
+                110: './example/exa1.10.html?t=' + v,
+                112: './example/exa1.12.html?t=' + v,
+                2: './example/exa2.html?t=' + v,
+                21: './example/exa2.1.html?t=' + v,
+                22: './example/exa2.2.html?t=' + v,
+                23: './example/exa2.3.html?t=' + v,
+                24: './example/exa2.4.html?t=' + v,
+                25: './example/exa2.5.html?t=' + v,
+                26: './example/exa2.6.html?t=' + v,
+                27: './example/exa2.7.html?t=' + v,
+            }
+            var url = map2Url[type];
+            $('iframe').attr('src', url);
+        }
+    </script>
+    <div>
+        <ul class="nav ">
+            <li class="nav-item" onClick="clickFn(14)">
+                <a class="nav-link text-light" href="#">立方体+图例 + 边框渐变</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(1)">
+                <a class="nav-link text-light" href="#">立方体+颜色渐变+图例+边框</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(15)">
+                <a class="nav-link text-light" href="#">立方体+颜色渐变+上下+图例+边框</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(17)">
+                <a class="nav-link text-light" href="#">立方体+颜色渐变+上下+横向+图例+边框</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(11)">
+                <a class="nav-link text-light" href="#">立方体+颜色渐变+横向+图例</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(12)">
+                <a class="nav-link text-light" href="#">立方体+颜色渐变+图例+堆叠</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(13)">
+                <a class="nav-link text-light" href="#">立方体+颜色渐变+图例+横向+堆叠</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(16)">
+                <a class="nav-link text-light" href="#">立方体+面积图</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(19)">
+                <a class="nav-link text-light" href="#">立方体+折线图+标签</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(18)">
+                <a class="nav-link text-light" href="#">立方体+横向+折线图+标签</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(110)">
+                <a class="nav-link text-light" href="#">立方体+长方形</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(112)">
+                    <a class="nav-link text-light" href="#">立方体+性能测试</a>
+                </li>
+            <li class="nav-item" onClick="clickFn(2)">
+                <a class="nav-link text-light" href="#">圆柱体+图例</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(21)">
+                <a class="nav-link text-light" href="#">圆柱体+横向+图例</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(22)">
+                <a class="nav-link text-light" href="#">圆柱体+图例+堆叠</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(23)">
+                <a class="nav-link text-light" href="#">圆柱体+图例+不堆叠</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(24)">
+                <a class="nav-link text-light" href="#">圆柱体+图例+上下</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(26)">
+                <a class="nav-link text-light" href="#">圆柱体+折线+标签</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(25)">
+                <a class="nav-link text-light" href="#">圆柱体+横向+折线+标签</a>
+            </li>
+            <li class="nav-item" onClick="clickFn(27)">
+                <a class="nav-link text-light" href="#">圆柱体+性能测试</a>
+            </li>
+        </ul>
+        <div>
+            <iframe height="600px" width="100%" style="overflow: hidden;border: none;" />
+        </div>
+    </div>
+</body>
+<script>
+    setTimeout(function(){
+        clickFn(1);
+    })
+</script>
+</html>
