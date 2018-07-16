@@ -1,9 +1,8 @@
 var webpack = require('webpack');
-
 module.exports = {
     mode: 'development',
     entry: {
-        'echarts-bar3d': __dirname + '/index.js'
+        'echarts-graph3d': __dirname + '/index.js'
     },
     plugins: [
         new webpack.DefinePlugin({
@@ -13,16 +12,16 @@ module.exports = {
     ],
     output: {
         libraryTarget: 'umd',
-        library: ['echarts-bar3d'],
+        library: 'echarts-graph3d',
         path: __dirname + '/dist',
         filename: '[name].js'
     },
     externals: {
-        'echarts/lib/echarts': 'echarts3'
+        'echarts/lib/echarts': 'echarts'
     },
     resolve: {
         alias: {
-            'echarts/lib/echarts': 'echarts3'
+            'echarts/lib/echarts': 'echarts'
         }
     }
 };

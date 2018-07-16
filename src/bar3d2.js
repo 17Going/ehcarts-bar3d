@@ -1,7 +1,7 @@
 // 注意：UE中使用多个版本导致echarts依赖有问题
-var echarts = _echarts3;//require('echarts/lib/echarts');
-require('./bar3d/Bar3dSeries');
-require('./bar3d/Bar3dView');
+var echarts = require('echarts/lib/echarts');
+require('./bar3d2/Bar3dSeries');
+require('./bar3d2/Bar3dView');
 
 var barLayoutGrid = require('echarts/lib/layout/barGrid');
 

@@ -1,6 +1,5 @@
 var echarts = require('echarts/lib/echarts');
 
-
 /**
  * 绘制4边形
  */

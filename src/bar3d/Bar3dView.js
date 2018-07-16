@@ -2,12 +2,11 @@ var echarts = _echarts3;//require('echarts/lib/echarts');
 var zrUtil = echarts.util;
 var graphic = echarts.graphic;
 var helper = require('./helper');
-var colorTool = require('zrender/lib/tool/color');
+var colorTool = echarts.color; 
 var BAR_BORDER_WIDTH_QUERY = ['itemStyle', 'normal', 'barBorderWidth'];
 var graph = require('./bar3dLayout');
 
-
-zrUtil.extend(require('echarts/lib/model/Model').prototype, require('./barItemStyle'));
+zrUtil.extend(echarts.Model.prototype, require('./barItemStyle'));
 
 var BarView = echarts.extendChartView({
 

@@ -1,26 +1,26 @@
 var webpack = require('webpack');
 
-console.log(webpack.DefinePlugin)
-
 module.exports = {
     mode: 'production',
     entry: {
         'echarts-bar3d': __dirname + '/index.js'
     },
-    plugins: [
-        new webpack.DefinePlugin({
-            'typeof __DEV__': JSON.stringify('boolean'),
-            __DEV__: false
-        })
-    ],
+    // plugins: [
+    //     new webpack.DefinePlugin({
+    //         'typeof __DEV__': JSON.stringify('boolean'),
+    //         __DEV__: false
+    //     })
+    // ],
+    devtool: 'source-map',
     output: {
-        libraryTarget: 'umd',
-        library: ['echarts-bar3d'],
+        libraryTarget: 'amd',
+        library: 'echarts-bar3d',
         path: __dirname + '/dist',
         filename: '[name].min.js'
     },
     externals: {
-        'echarts/lib/echarts': 'echarts'
+        'echarts/lib/echarts': 'echarts3'
+        // 'echarts/lib/echarts': 'zrender'
     },
     resolve: {
         alias: {
