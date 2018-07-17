@@ -118,11 +118,11 @@ function updateCube(el, layout, isHorizontal, animationModel, newIndex) {
     var points = getPoints(shape, isHorizontal);
 
     el.eachChild(function (childEl) {
-        if (childEl.location == 'top') {
+        if (childEl.name == 'top') {
             graphic.updateProps(childEl, { shape: getTopShape(shape, points, isHorizontal) }, animationModel, newIndex);
-        } else if (childEl.location == 'bottom') {
+        } else if (childEl.name == 'bottom') {
             graphic.updateProps(childEl, { shape: getBottomShape(shape, points, isHorizontal) }, animationModel, newIndex);
-        } else if (childEl.location == 'flank') {
+        } else if (childEl.name == 'leftFlank' || childEl.name == 'rightFlank' ) {
             graphic.updateProps(childEl, { shape: getFlankShape(shape, points, isHorizontal) }, animationModel, newIndex);
         } else {
             graphic.updateProps(childEl, { shape: getFrontShape(shape, points, isHorizontal) }, animationModel, newIndex);
@@ -142,9 +142,9 @@ function updateCylinder(el, layout, isHorizontal, animationModel, newIndex) {
     var shape = zrUtil.extend({}, layout);
 
     el.eachChild(function (childEl) {
-        if (childEl.location == 'top') {
+        if (childEl.name == 'top') {
             graphic.updateProps(childEl, { shape: getCylinderTop(shape, isHorizontal) }, animationModel, newIndex);
-        } else if (childEl.location == 'bottom') {
+        } else if (childEl.name == 'bottom') {
             graphic.updateProps(childEl, { shape: getCylinderBottom(shape, isHorizontal) }, animationModel, newIndex);
         } else {
             graphic.updateProps(childEl, { shape: getCylinderFront(shape, isHorizontal) }, animationModel, newIndex);
@@ -170,29 +170,29 @@ function createCube(data, dataIndex, itemModel, layout, isHorizontal, animationM
     var points = getPoints(shape, isHorizontal);
 
     var bottom = new graph.Quadrangle({
-        location: 'bottom',
+        name: 'bottom',
         shape: getBottomShape(shape, points, isHorizontal)
     });
 
     // 创建顶面
     var top = new graph.Quadrangle({
-        location: 'top',
+        name: 'top',
         shape: getTopShape(shape, points, isHorizontal)
     });
 
     var front = new graph.Quadrangle({
-        location: 'front',
+        name: 'front',
         isHorizontal: isHorizontal,
         shape: getFrontShape(shape, points, isHorizontal)
     });
 
     var leftFlank = new graph.Quadrangle({
-        location: 'flank',
+        name: 'leftFlank',
         shape: getFlankShape(shape, points, isHorizontal)
     });
 
     var rightFlank = new graph.Quadrangle({
-        location: 'flank',
+        name: 'rightFlank',
         shape: getRightFlankShape(shape, points, isHorizontal)
     });
 
@@ -515,11 +515,11 @@ function updateCubeStyle(el, data, dataIndex, itemModel, layout, seriesModel, is
     var itemStyleModel = itemModel.getModel('itemStyle.normal');
     var oldColor = itemStyleModel.getBarItemStyle();
 
-    var rightFlank = el.childAt(0),
-        bottom = el.childAt(1),
-        top = el.childAt(2),
-        leftFlank = el.childAt(3),
-        front = el.childAt(4);
+    var rightFlank = el.childOfName('rightFlank'),
+        bottom = el.childOfName('bottom'),
+        top = el.childOfName('top'),
+        leftFlank = el.childOfName('leftFlank'),
+        front = el.childOfName('front');
 
     front.setShape('r', itemStyleModel.get('barBorderRadius') || 0);
     top.useStyle(zrUtil.defaults(
@@ -631,10 +631,10 @@ function updateCylinderStyle(el, data, dataIndex, itemModel, layout, seriesModel
     var color = data.getItemVisual(dataIndex, 'color');
     var opacity = data.getItemVisual(dataIndex, 'opacity') || 1;
     var itemStyleModel = itemModel.getModel('itemStyle.normal');
-    var front = el.childAt(0),
-        bottom = el.childAt(1),
-        top = el.childAt(2),
-        text = el.childAt(3);
+    var front = el.childOfName('front'),
+        bottom = el.childOfName('bottom'),
+        top = el.childOfName('top'),
+        text = el.childOfName('text'),
 
     // front.setShape('r', itemStyleModel.get('barBorderRadius') || 0);
     top.useStyle(zrUtil.defaults(
@@ -778,27 +778,27 @@ function createCylinder(data, dataIndex, itemModel, layout, isHorizontal, animat
 
     // 绘制正面
     var front = new graphic.Rect({
-        location: 'front',
+        name: 'front',
         shape: getCylinderFront(shape, isHorizontal),
         isHorizontal: isHorizontal
     });
 
     // 绘制文字图形容器
     var text = new graphic.Rect({
-        location: 'text',
+        name: 'text',
         shape: getCylinderFront(shape, isHorizontal),
         isHorizontal: isHorizontal
     });
 
     // 绘制底面
     var bottom = new graph.Ellipse({
-        location: 'bottom',
+        name: 'bottom',
         shape: getCylinderBottom(shape, isHorizontal)
     });
 
     // 绘制顶面
     var top = new graph.Ellipse({
-        location: 'top',
+        name: 'top',
         shape: getCylinderTop(shape, isHorizontal)
     });
 
@@ -868,11 +868,11 @@ function removeRect(dataIndex, animationModel, el) {
 * @param {Boolean} isHorizontal
 */
 function removeCube(dataIndex, animationModel, el) {
-    var rightFlank = el.childAt(0),
-        bottom = el.childAt(1),
-        top = el.childAt(2),
-        front = el.childAt(3),
-        leftFlank = el.childAt(4);
+    var rightFlank = el.childOfName('rightFlank'),
+        bottom = el.childOfName('bottom'),
+        top = el.childOfName('top'),
+        front = el.childOfName('front'),
+        leftFlank = el.childOfName('leftFlank');
 
     var isHorizontal = front.isHorizontal;
     var bshape = bottom.shape;
@@ -922,9 +922,9 @@ function removeCube(dataIndex, animationModel, el) {
 function removeCylinder(dataIndex, animationModel, el, isHorizontal) {
 
     // 注位置要与存入一致
-    var front = el.childAt(0),
-        bottom = el.childAt(1),
-        top = el.childAt(2);
+    var front = el.childOfName('front'),
+        bottom = el.childOfName('bottom'),
+        top = el.childOfName('top');
 
     var isHorizontal = front.isHorizontal;
     var bShape = bottom.shape;

@@ -9,9 +9,9 @@
     <script>
         window.__DEV__ = false;
     </script>
+    <!-- <script src="https://cdn.bootcss.com/echarts/3.8.4/echarts.js"></script> -->
     <!-- <script src="https://cdn.bootcss.com/require.js/2.1.20/require.js"></script> -->
-    <script src="https://cdn.bootcss.com/echarts/3.8.4/echarts.js"></script>
-    <!-- <script src="echarts.all.js"></script> -->
+    <script src="echarts.js"></script>
     <script src='../dist/echarts-graph3d.js'></script>
 </head>
 
@@ -23,6 +23,7 @@
             width: 100%;
             height: 100%;
             margin: 0;
+            background-color: black;
         }
 
         #main {
@@ -33,17 +34,36 @@
     <div id="main"></div>
 </body>
 <script>
+
+   var color = new echarts.graphic.LinearGradient(
+        0, 1, 0 , 0,
+        [
+            { offset: 0, color: 'rgba(255, 240, 178, 0.1)' },
+            { offset: 1, color: 'rgba(255, 240, 178, 1)'}
+        ]
+    );
+
     var chart = echarts.init(document.getElementById('main'), null, {
         renderer: 'canvas'
     });
     function getData() {
-        return [Math.floor(400 * Math.random()),
-        Math.floor(400 * Math.random()),
-        Math.floor(400 * Math.random()),
-        Math.floor(400 * Math.random()),
-        Math.floor(400 * Math.random()),
-        Math.floor(400 * Math.random()),
-        Math.floor(400 * Math.random())]
+
+        var result = [];
+        for(var i = 0; i < 10; i++){
+            result.push(Math.floor(400 * Math.random()))
+        }
+
+        return result;
+    }
+
+    function getLData() {
+
+        var result = [];
+        for(var i = 0; i < 10; i++){
+            result.push('Wed' + i)
+        }
+
+        return result;
     }
 
     function getAData() {
@@ -60,17 +80,35 @@
 
         xAxis: {
             type: 'category',
-            data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            data: getLData(),
+            splitLine: { show: false }
         },
         yAxis: {
-            type: 'value'
+            type: 'value',
+            splitLine: { show: false },
+        },
+        legend: {
+            data:['邮件营销']
+        },
+        dataZoom: {
+          type: 'inside'
         },
         series: [{
-            data: [820, 932, 901, 934, 1290, 1330, 1320],
-            type: 'area3d'
+            data: getData(),
+            type: 'area3d',
+            name: '邮件营销',
+            areaStyle: {
+                normal: {
+                    color: color,
+                    borderColor: '#ffd015',
+                    // topFaceColor: 'rgba(255, 240, 178, 1)',
+                    faceWidth: 10
+                }
+            },
+            smooth: 0.9
         }]
     };
-
+    window.chart = chart;
     chart.setOption(option);
 </script>
 

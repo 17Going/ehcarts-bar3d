@@ -1,5 +1,5 @@
 var echarts = require('echarts/lib/echarts');
-
+var Path = require("zrender/lib/graphic/Path");
 var graphic = echarts.graphic;
 
 var vec2 = echarts.vector;
@@ -109,32 +109,18 @@ function drawSegment(ctx, points, start, segLen, allLen, dir, smoothMin, smoothM
 function getBoundingBox(points, smoothConstraint) {
   var ptMin = [Infinity, Infinity];
   var ptMax = [-Infinity, -Infinity];
-
   if (smoothConstraint) {
-    for (var i = 0; i < points.length; i++) {
-      var pt = points[i];
-
-      if (pt[0] < ptMin[0]) {
-        ptMin[0] = pt[0];
+      for (var i = 0; i < points.length; i++) {
+          var pt = points[i];
+          if (pt[0] < ptMin[0]) { ptMin[0] = pt[0]; }
+          if (pt[1] < ptMin[1]) { ptMin[1] = pt[1]; }
+          if (pt[0] > ptMax[0]) { ptMax[0] = pt[0]; }
+          if (pt[1] > ptMax[1]) { ptMax[1] = pt[1]; }
       }
-
-      if (pt[1] < ptMin[1]) {
-        ptMin[1] = pt[1];
-      }
-
-      if (pt[0] > ptMax[0]) {
-        ptMax[0] = pt[0];
-      }
-
-      if (pt[1] > ptMax[1]) {
-        ptMax[1] = pt[1];
-      }
-    }
   }
-
   return {
-    min: smoothConstraint ? ptMin : ptMax,
-    max: smoothConstraint ? ptMax : ptMin
+      min: smoothConstraint ? ptMin : ptMax,
+      max: smoothConstraint ? ptMax : ptMin
   };
 }
 
@@ -151,7 +137,7 @@ var Polyline = graphic.extendShape({
     fill: null,
     stroke: '#000'
   },
-  // brush: fixClipWithShadow(Path.prototype.brush),
+  brush: fixClipWithShadow(Path.prototype.brush),
   buildPath: function (ctx, shape) {
     var points = shape.points;
     var i = 0;
@@ -191,7 +177,7 @@ var Polygon = graphic.extendShape({
     smoothMonotone: null,
     connectNulls: false
   },
-  // brush: fixClipWithShadow(Path.prototype.brush),
+  brush: fixClipWithShadow(Path.prototype.brush),
   buildPath: function (ctx, shape) {
     var points = shape.points;
     var stackedOnPoints = shape.stackedOnPoints;
