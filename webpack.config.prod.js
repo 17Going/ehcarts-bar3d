@@ -11,7 +11,7 @@ module.exports = {
     //         __DEV__: false
     //     })
     // ],
-    devtool: 'source-map',
+    devtool: false,
     output: {
         libraryTarget: 'amd',
         library: 'echarts-bar3d',
@@ -19,7 +19,7 @@ module.exports = {
         filename: '[name].min.js'
     },
     externals: {
-        'echarts/lib/echarts': 'echarts3'
+        'echarts/lib/echarts': 'echarts'
         // 'echarts/lib/echarts': 'zrender'
     },
     resolve: {

@@ -1,4 +1,4 @@
-var echarts = _echarts3;//require('echarts/lib/echarts');
+var echarts = require('echarts/lib/echarts');
 var helper = {};
 var graphic = echarts.graphic;
 

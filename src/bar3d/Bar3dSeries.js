@@ -1,10 +1,10 @@
-var echarts = _echarts3;//require('echarts/lib/echarts');
+var echarts = require('echarts/lib/echarts');
 
 module.exports = echarts.extendSeriesModel({
 
     type: 'series.bar3d',
 
-    dependencies: ['grid', 'polar'],
+    dependencies: ['grid3d'],
 
     brushSelector: 'rect',
 

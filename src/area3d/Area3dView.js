@@ -1,13 +1,16 @@
+
 var echarts = require('echarts/lib/echarts');
 var graphic = echarts.graphic;
 var zrUtil = echarts.util;
 
 var _poly = require("./poly");
-
-var Polyline = _poly.Polyline;
 var Polygon = _poly.Polygon;
+var PolygonOver = _poly.PolygonOver;
+
+var SymbolDraw = require('echarts/lib/chart/helper/SymbolDraw');
 
 var TOP_FACE = 'topFace',
+    TOP_FACE_2 = 'topFace2',
     RIGHT_FACE = 'rightFace',
     LEFT_FACE = 'leftFace',
     FRONT_FACE = 'frontFace',
@@ -24,7 +27,11 @@ zrUtil.extend(echarts.Model.prototype, require('./Area3dStyle'));
 var _default = echarts.extendChartView({
     type: 'area3d',
     init: function () {
-
+        var symbolDraw = new SymbolDraw();
+        this.group.add(symbolDraw.group);
+        this._symbolDraw = symbolDraw;
+        this._lineGroup = new graphic.Group();
+        this.group.add(this._lineGroup);
     },
     render: function (seriesModel, ecModel, api) {
         var coordSys = seriesModel.coordinateSystem;
@@ -35,37 +42,43 @@ var _default = echarts.extendChartView({
         var isHorizontal = baseAxis.isHorizontal();
         var hasAnimation = seriesModel.get('animation');
 
+        var showSymbol = seriesModel.get('showSymbol');
+
+        // 标注
+        var symbolDraw = this._symbolDraw;
+        if (!showSymbol) {
+            symbolDraw.remove();
+        }
+        showSymbol && symbolDraw.updateData(data, false);
+
         // 绘制删除之前所有图形元素，避免重复绘制
-        group.removeAll();
+        // group.removeAll();
 
         // 绘制
-        var g = createArea(data, coordSys, seriesModel, isHorizontal);
-
-        group.add(g);
-        updateStyle(g, data, coordSys, seriesModel)
-        g.setClipPath(createGridClipShape(coordSys, hasAnimation, seriesModel));
+        createArea(this._lineGroup, data, coordSys, seriesModel, isHorizontal, hasAnimation);
+        updateStyle(this._lineGroup, data, coordSys, seriesModel, isHorizontal);
 
         data.diff(oldData)
-            .add(function(dataIndex){
-                console.log('add')
-                console.log(dataIndex)
+            .add(function (dataIndex) {
+                // console.log(dataIndex)
             })
             .update(function (newIndex, oldIndex) {
                 console.log('update')
-                console.log(newIndex, oldIndex)
             })
             .remove(function (dataIndex) {
                 console.log('remove')
-                console.log(dataIndex)
             })
             .execute();
+        this._data = data;
     },
 
     dispose: function () { },
 
     remove: function (ecModel) {
-        var group = this.group;
-        group.removeAll();
+        // var group = this.group;
+        // group.removeAll();
+        this._lineGroup.removeAll();
+        this._symbolDraw.remove(true);
     }
 });
 
@@ -90,12 +103,12 @@ function createGridClipShape(cartesian, hasAnimation, seriesModel) {
     var expandSize = seriesModel.get('clipOverflow') ? lineWidth / 2 : Math.max(width, height);
 
     if (isHorizontal) {
-        y -= expandSize;
-        height += expandSize * 2;
+        y -= expandSize + faceWidth;
+        height += (expandSize * 2 + faceWidth);
         width += faceWidth;
     } else {
         x -= expandSize;
-        width += expandSize * 2;
+        width += (expandSize * 2 + faceWidth);
         height += faceWidth;
     }
 
@@ -177,84 +190,6 @@ function sign(val) {
     return val >= 0 ? 1 : -1;
 }
 
-function getVisualGradient(data, coordSys) {
-    var visualMetaList = data.getVisual('visualMeta');
-
-    if (!visualMetaList || !visualMetaList.length || !data.count()) {
-        // When data.count() is 0, gradient range can not be calculated.
-        return;
-    }
-
-    var visualMeta;
-
-    for (var i = visualMetaList.length - 1; i >= 0; i--) {
-        // Can only be x or y
-        if (visualMetaList[i].dimension < 2) {
-            visualMeta = visualMetaList[i];
-            break;
-        }
-    }
-
-    if (!visualMeta || coordSys.type !== 'cartesian2d') {
-        return;
-    } // If the area to be rendered is bigger than area defined by LinearGradient,
-    // the canvas spec prescribes that the color of the first stop and the last
-    // stop should be used. But if two stops are added at offset 0, in effect
-    // browsers use the color of the second stop to render area outside
-    // LinearGradient. So we can only infinitesimally extend area defined in
-    // LinearGradient to render `outerColors`.
-
-
-    var dimension = visualMeta.dimension;
-    var dimName = data.dimensions[dimension];
-    var axis = coordSys.getAxis(dimName); // dataToCoor mapping may not be linear, but must be monotonic.
-
-    var colorStops = zrUtil.map(visualMeta.stops, function (stop) {
-        return {
-            coord: axis.toGlobalCoord(axis.dataToCoord(stop.value)),
-            color: stop.color
-        };
-    });
-    var stopLen = colorStops.length;
-    var outerColors = visualMeta.outerColors.slice();
-
-    if (stopLen && colorStops[0].coord > colorStops[stopLen - 1].coord) {
-        colorStops.reverse();
-        outerColors.reverse();
-    }
-
-    var tinyExtent = 10; // Arbitrary value: 10px
-
-    var minCoord = colorStops[0].coord - tinyExtent;
-    var maxCoord = colorStops[stopLen - 1].coord + tinyExtent;
-    var coordSpan = maxCoord - minCoord;
-
-    if (coordSpan < 1e-3) {
-        return 'transparent';
-    }
-
-    zrUtil.each(colorStops, function (stop) {
-        stop.offset = (stop.coord - minCoord) / coordSpan;
-    });
-    colorStops.push({
-        offset: stopLen ? colorStops[stopLen - 1].offset : 0.5,
-        color: outerColors[1] || 'transparent'
-    });
-    colorStops.unshift({
-        // notice colorStops.length have been changed.
-        offset: stopLen ? colorStops[0].offset : 0.5,
-        color: outerColors[0] || 'transparent'
-    }); // zrUtil.each(colorStops, function (colorStop) {
-    //     // Make sure each offset has rounded px to avoid not sharp edge
-    //     colorStop.offset = (Math.round(colorStop.offset * (end - start) + start) - start) / (end - start);
-    // });
-
-    var gradient = new graphic.LinearGradient(0, 0, 0, 0, colorStops, true);
-    gradient[dimName] = minCoord;
-    gradient[dimName + '2'] = maxCoord;
-    return gradient;
-}
-
 /**
  * 获取曲线圆滑程度 （0~1）
  * @param {Number|Boolean} smooth 
@@ -263,6 +198,35 @@ function getSmooth(smooth) {
     return typeof smooth === 'number' ? smooth : smooth ? 0.3 : 0;
 }
 
+/**
+ * 创建2.5绘制面
+ * @param {*} g 
+ * @param {*} Poly 
+ * @param {*} name 
+ * @param {*} shape 
+ * @param {*} smooth 
+ * @param {*} z2 
+ * @param {*} seriesModel 
+ */
+function createShape(g, Poly, name, shape, smooth, z2, seriesModel) {
+    var graph;
+    if (graph = g.childOfName(name)) {
+        graphic.updateProps(graph, {
+            shape: shape
+        }, seriesModel);
+    } else {
+        graph = new Poly({
+            name: name,
+            shape: zrUtil.defaults({
+                smooth: smooth,
+                stackedOnSmooth: smooth
+            }, shape),
+            z2: z2
+        });
+
+        g.add(graph);
+    }
+}
 
 /**
  * 绘制3d面积图
@@ -271,97 +235,70 @@ function getSmooth(smooth) {
  * @param {Model} seriesModel 
  * @param {Boolean} isHorizontal 
  */
-function createArea(data, coordSys, seriesModel, isHorizontal) {
+function createArea(g, data, coordSys, seriesModel, isHorizontal, hasAnimation) {
+    var count = g.childCount();
     var areaStyleModel = seriesModel.getModel('areaStyle.normal');
     // 获取面宽
     var faceWidth = areaStyleModel.get('faceWidth');
-    // 创建一个组来绘制图形
-    var g = new graphic.Group();
+
     //获取点数据
     var points = data.mapArray(data.getItemLayout, true);
     // 上升点
-    var upPoints = points.map(function (item) {
-        return getPoint(item, faceWidth, isHorizontal);
+    var upPoints = points.map(function (item, index) {
+        return getPoint(item, index, faceWidth, isHorizontal);
     });
+
     // 获取坐标轴上的坐标点
     var stackedOnPoints = getStackedOnPoints(coordSys, data);
     // 上升点
-    var upStackedOnPoints = stackedOnPoints.map(function (item) {
-        return getPoint(item, faceWidth, isHorizontal);
+    var upStackedOnPoints = stackedOnPoints.map(function (item, index) {
+        return getPoint(item, index, faceWidth, isHorizontal);
     });
 
     var len = points.length;
     var firstIndex = 0;
     var lastIndex = len - 1;
-
-
     var smooth = seriesModel.get('smooth');
     smooth = getSmooth(seriesModel.get('smooth'));
 
+
+    var shape = {
+        points: points,
+        stackedOnPoints: upPoints
+    };
+
     // 绘制顶面
-    var topFace = new Polygon({
-        name: TOP_FACE,
-        shape: {
-            points: points,
-            stackedOnPoints: upPoints,
-            smooth: smooth,
-            stackedOnSmooth: smooth,
-        },
-        z2: 10
-    });
-    g.add(topFace);
+    createShape(g, PolygonOver, TOP_FACE, shape, smooth, 10, seriesModel);
+
+    // 顶面2，绘制顶面1无法填充的地方
+    createShape(g, Polygon, TOP_FACE_2, shape, smooth, 10, seriesModel);
+
+
+    // 绘制左侧面（看不见先不绘制）
+    /* createShape(g, Polygon, LEFT_FACE, {
+        points: [points[firstIndex], upPoints[firstIndex]],
+        stackedOnPoints: [stackedOnPoints[firstIndex], upStackedOnPoints[firstIndex]]
+    }, smooth, 5, seriesModel);*/
 
     // 绘制右侧面
-    var leftFace = new Polygon({
-        name: LEFT_FACE,
-        shape: {
-            points: [points[firstIndex], upPoints[firstIndex]],
-            stackedOnPoints: [stackedOnPoints[firstIndex], upStackedOnPoints[firstIndex]],
-            smooth: smooth,
-            stackedOnSmooth: smooth
-        },
-        z2: 5
-    });
-    g.add(leftFace);
-
-    // 绘制左侧面
-    var rightFace = new Polygon({
-        name: RIGHT_FACE,
-        shape: {
-            points: [points[lastIndex], upPoints[lastIndex]],
-            stackedOnPoints: [stackedOnPoints[lastIndex], upStackedOnPoints[lastIndex]],
-            smooth: smooth,
-            stackedOnSmooth: smooth
-        },
-        z2: 5
-    });
-    g.add(rightFace);
+    createShape(g, Polygon, RIGHT_FACE, {
+        points: [points[lastIndex], upPoints[lastIndex]],
+        stackedOnPoints: [stackedOnPoints[lastIndex], upStackedOnPoints[lastIndex]]
+    }, smooth, 11, seriesModel);
 
     //绘制正面
-    var frontFace = new Polygon({
-        name: FRONT_FACE,
-        shape: {
-            points: points,
-            stackedOnPoints: stackedOnPoints,
-            smooth: smooth,
-            stackedOnSmooth: smooth
-        },
-        z2: 10
-    });
-    g.add(frontFace);
+    createShape(g, Polygon, FRONT_FACE, {
+        points: points,
+        stackedOnPoints: stackedOnPoints
+    }, smooth, 10, seriesModel);
 
-    // 绘制背面
-    var backFace = new Polygon({
-        name: BACK_FACE,
-        shape: {
-            points: upPoints,
-            stackedOnPoints: upStackedOnPoints,
-            smooth: smooth,
-            stackedOnSmooth: smooth
-        }
-    });
-    g.add(backFace);
-    return g;
+    // 绘制背面(看不见)
+    /*createShape(g, Polygon, BACK_FACE, {
+        points: upPoints,
+        stackedOnPoints: upStackedOnPoints
+    }, smooth, 0, seriesModel);*/
+
+    !count && g.setClipPath(createGridClipShape(coordSys, hasAnimation, seriesModel));
 }
 
 /**
@@ -370,33 +307,130 @@ function createArea(data, coordSys, seriesModel, isHorizontal) {
  * @param {Number} faceWidth 
  * @param {Boolean} isHorizontal 
  */
-function getPoint(point, faceWidth, isHorizontal) {
+function getPoint(point, index, faceWidth, isHorizontal) {
     return isHorizontal ? [point[0] + faceWidth, point[1] - faceWidth]
         : [point[0] + faceWidth, point[1] + faceWidth];
 }
 
 
-function updateStyle(g, data, coordSys, itemModel) {
-    var areaStyleModel = itemModel.getModel('areaStyle.normal');
-    var visualColor = getVisualGradient(data, coordSys) || data.getVisual('color');
-    var topFaceColor = areaStyleModel.get('topFaceColor');
+/**
+ * 颜色变暗
+ * @param {0~1} level 
+ * @param {color} color 
+ */
+function lerpColor(level, color) {
+    var colorUtil = echarts.color;
+    if (!zrUtil.isString(color)) {
+        return color;
+    }
+    return colorUtil.lerp(level, [color, '#000']);
+}
 
-    // 获取设置的颜色值
-    var defaultsStyle = zrUtil.defaults(
-        areaStyleModel.getArea3dStyle(),
-        {
-            fill: visualColor,
-            stroke: 'none',
-            lineJoin: 'bevel'
+/**
+ * 根据最后一个值得大小来计算右侧面的颜色渐变(开始渐变色)
+ * 注：目前只支持上下渐变
+ * @param {*} color 
+ * @param {*} data 
+ * @param {*} coordSys 
+ * @param {*} isHorizontal 
+ */
+function getGradientColor(color, data, coordSys, isHorizontal) {
+    color = zrUtil.clone(color);
+    var colorUtil = echarts.color;
+
+    // 不是渐变色不需要处理
+    if (zrUtil.isString(color)) {
+        return lerpColor(0.4, color);
+    }
+
+    var colorStops = color.colorStops;
+    var startColor, startIndex;
+    var endColor;
+    for (var i = 0, len = colorStops.length; i < len; i++) {
+        if (colorStops[i].offset == 0) {
+            startColor = colorStops[i].color;
+            startIndex = i;
         }
-    );
 
-    g.childOfName(TOP_FACE).useStyle(zrUtil.defaults({ opacity: 0.55, fill: topFaceColor }, defaultsStyle));
-    g.childOfName(BACK_FACE).useStyle(zrUtil.defaults({ opacity: 0.1 }, defaultsStyle));
-    g.childOfName(FRONT_FACE).useStyle(zrUtil.defaults({ opacity: 0.45 }, defaultsStyle));
+        if (colorStops[i].offset == 1) {
+            endColor = colorStops[i].color;
+        }
 
-    g.childOfName(RIGHT_FACE).useStyle(zrUtil.defaults({ opacity: 0.15 }, defaultsStyle));
-    g.childOfName(LEFT_FACE).useStyle(zrUtil.defaults({ opacity: 0.2 }, defaultsStyle));
+        if (startColor && endColor) {
+            break;
+        }
+    }
+
+    // 如果未设置开始渐变颜色则返回
+    if (!startColor || !endColor) {
+        return color;
+    }
+
+    var points = data.mapArray(data.getItemLayout, true);
+    var len = points.length;
+    var baseAxis = coordSys.getBaseAxis();
+    var valueAxis = coordSys.getOtherAxis(baseAxis);
+    var height = valueAxis.toGlobalCoord(0);
+
+    var value;
+    if (isHorizontal) {
+        value = points[len - 1][1];
+    }
+    var level = Math.abs(value / height);// 计算坐标所在位置是坐标系中的什么位置
+    startColor = colorUtil.lerp(level, [startColor, endColor]);
+    colorStops[startIndex].color = startColor;
+
+    return color;
+}
+
+/**
+ * 设置图形样式
+ * @param {*} g 
+ * @param {*} name 
+ * @param {*} areaStyle 
+ * @param {*} options 
+ */
+function setStyle(g, name, areaStyle, options) {
+    g.childOfName(name).useStyle(zrUtil.defaults(
+        options,
+        areaStyle
+    ));
+}
+
+/**
+ * 设置图形样式（上色、透明）
+ * @param {*} g 
+ * @param {*} data 
+ * @param {*} coordSys 
+ * @param {*} itemModel 
+ * @param {*} isHorizontal 
+ */
+function updateStyle(g, data, coordSys, itemModel, isHorizontal) {
+    var areaStyleModel = itemModel.getModel('areaStyle.normal');
+    var visualColor = data.getVisual('color');
+    var areaStyle = areaStyleModel.getArea3dStyle();
+    var color = areaStyle.fill || visualColor;
+
+    var rightColor = getGradientColor(color, data, coordSys, isHorizontal);
+
+    // 设置顶面的样式
+    setStyle(g, TOP_FACE, areaStyle, {
+        fill: lerpColor(0.3, color)
+    });
+    setStyle(g, TOP_FACE_2, areaStyle, {
+        fill: lerpColor(0.3, color)
+    });
+
+    // 设置正面样式
+    setStyle(g, FRONT_FACE, areaStyle, {
+        fill: color,
+        opacity: 1
+    });
+
+    // 设置右侧面样式
+    setStyle(g, RIGHT_FACE, areaStyle, {
+        fill: rightColor
+    });
 }
 
 module.exports = _default;

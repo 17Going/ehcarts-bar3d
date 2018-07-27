@@ -1,6 +1,6 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define('echarts25', ['exports'], factory) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(factory((global.echarts = {})));
 }(this, (function (exports) { 'use strict';
 
@@ -24571,6 +24571,54 @@ function getDimTypeByAxis(axisType) {
  */
 var creators = {
 
+    cartesian3d: function (data, seriesModel, ecModel, completeDimOpt) {
+
+        var axesModels = map(['x3dAxis', 'y3dAxis'], function (name) {
+            return ecModel.queryComponents({
+                mainType: name,
+                index: seriesModel.get(name + 'Index'),
+                id: seriesModel.get(name + 'Id')
+            })[0];
+        });
+        var xAxisModel = axesModels[0];
+        var yAxisModel = axesModels[1];
+
+        var xAxisType = xAxisModel.get('type');
+        var yAxisType = yAxisModel.get('type');
+
+        var dimensions = [
+            {
+                name: 'x3d',
+                type: getDimTypeByAxis(xAxisType),
+                stackable: isStackable(xAxisType)
+            },
+            {
+                name: 'y3d',
+                // If two category axes
+                type: getDimTypeByAxis(yAxisType),
+                stackable: isStackable(yAxisType)
+            }
+        ];
+
+        var isXAxisCateogry = xAxisType === 'category';
+        var isYAxisCategory = yAxisType === 'category';
+
+        dimensions = completeDimensions(dimensions, data, completeDimOpt);
+
+        var categoryAxesModels = {};
+        if (isXAxisCateogry) {
+            categoryAxesModels.x3d = xAxisModel;
+        }
+        if (isYAxisCategory) {
+            categoryAxesModels.y3d = yAxisModel;
+        }
+        return {
+            dimensions: dimensions,
+            categoryIndex: isXAxisCateogry ? 0 : (isYAxisCategory ? 1 : -1),
+            categoryAxesModels: categoryAxesModels
+        };
+    },
+
     cartesian2d: function (data, seriesModel, ecModel, completeDimOpt) {
 
         var axesModels = map(['xAxis', 'yAxis'], function (name) {
@@ -24583,6 +24631,22 @@ var creators = {
         var xAxisModel = axesModels[0];
         var yAxisModel = axesModels[1];
 
+        if (__DEV__) {
+            if (!xAxisModel) {
+                throw new Error('xAxis "' + retrieve(
+                    seriesModel.get('xAxisIndex'),
+                    seriesModel.get('xAxisId'),
+                    0
+                ) + '" not found');
+            }
+            if (!yAxisModel) {
+                throw new Error('yAxis "' + retrieve(
+                    seriesModel.get('xAxisIndex'),
+                    seriesModel.get('yAxisId'),
+                    0
+                ) + '" not found');
+            }
+        }
 
         var xAxisType = xAxisModel.get('type');
         var yAxisType = yAxisModel.get('type');
@@ -26040,24 +26104,6 @@ var axisModelCommonMixin = {
 
 // Symbol factory
 
-var coils = graphic.extendShape({
-    type: 'coils',
-    shape: {
-      cx: 0,
-      cy: 0,
-      width: 0,
-      height: 0
-    },
-    buildPath: function (path, shape) {
-      var cx = shape.cx;
-      var cy = shape.cy;
-      var width = shape.width / 2;
-      var height = shape.height / 2;
-      path.arc(cx, cy, Math.min(width, height), 0, 2*Math.PI)
-      path.closePath();
-    }
-  });
-
 /**
  * Triangle shape
  * @inner
@@ -26215,9 +26261,7 @@ var symbolCtors = {
 
     arrow: Arrow,
 
-    triangle: Triangle,
-
-    coils: coils
+    triangle: Triangle
 };
 
 var symbolShapeMakers = {
@@ -26282,13 +26326,6 @@ var symbolShapeMakers = {
     },
 
     triangle: function (x, y, w, h, shape) {
-        shape.cx = x + w / 2;
-        shape.cy = y + h / 2;
-        shape.width = w;
-        shape.height = h;
-    },
-
-    coils: function (x, y, w, h, shape) {
         shape.cx = x + w / 2;
         shape.cy = y + h / 2;
         shape.width = w;
@@ -31424,79 +31461,6 @@ var selfBuilderAttrs = [
 //     return alignWithLabel;
 // }
 
-/**
- * 通过全局模型获取柱宽，再通过一定算法得到偏移量
- * @param {Global} ecModel 
- */
-function getSplitLineOffset(ecModel){
-    var seriesModel = ecModel.getSeriesByType('bar3d')[0];
-    if(!seriesModel){
-        return null;
-    }
-    var cartesian = seriesModel.coordinateSystem;
-    var barLength = seriesModel.get('barLength') || 0; 
-    var baseAxis = cartesian.getBaseAxis();
-    var isHorizontal = baseAxis.isHorizontal();
-    var data = seriesModel.getData();
-    var layout = data.getItemLayout(0) || {};
-
-    return isHorizontal ? cvtOffset(Math.max(layout.width, barLength)) :
-        cvtOffset(Math.max(layout.height, barLength));
-}
-
-/**
- * 根据立方体柱子的算法来转换宽度得到偏移量
- * @param {Number} barWidth 
- */
-function cvtOffset(barWidth) {
-    return barWidth*Math.sin(Math.PI/4)/2
-}
-
-/**
- * 获取分割线绘制坐标点
- */
-function getDrawPoints(isHorizontal, tickCoord, gridRect, offset, shape) {
-    var top = [], bottom = [], center = [], ax = [];
-    if(isHorizontal){
-        var y = shape.y1;
-        // 顶点坐标
-        top[0] = tickCoord + offset;
-        top[1] = gridRect.y - offset;
-
-        // 底点坐标
-        bottom[0] = tickCoord + offset;
-        bottom[1] = gridRect.y + gridRect.height - offset;
-
-        //中心坐标
-        center[0] = tickCoord + offset;
-        center[1] = y - offset;
-
-        // 坐标轴上点
-        ax[0] = tickCoord;
-        ax[1] = y;
-    } else {
-        var x = shape.x1;
-        // 顶点坐标
-        top[0] = gridRect.x + offset;
-        top[1] = tickCoord - offset;
-        
-        // 底点坐标
-        bottom[0] = gridRect.x + gridRect.width + offset;
-        bottom[1] = tickCoord - offset;
-
-        //中心坐标
-        center[0] = x + offset;
-        center[1] = tickCoord - offset;
-
-        // // 坐标轴上点
-        ax[0] = x;
-        ax[1] = tickCoord;
-    }
-    
-    return [center, top, bottom, ax];
-}
-
-
 var CartesianAxisView = AxisView.extend({
 
     type: 'cartesianAxis',
@@ -31531,7 +31495,7 @@ var CartesianAxisView = AxisView.extend({
 
         each$1(selfBuilderAttrs, function (name) {
             if (axisModel.get(name + '.show')) {
-                this['_' + name](axisModel, gridModel, layout$$1.labelInterval, ecModel, axisBuilder.getGroup().childAt(0));
+                this['_' + name](axisModel, gridModel, layout$$1.labelInterval);
             }
         }, this);
 
@@ -31546,7 +31510,7 @@ var CartesianAxisView = AxisView.extend({
      * @param {number|Function} labelInterval
      * @private
      */
-    _splitLine: function (axisModel, gridModel, labelInterval, ecModel, linePath) {
+    _splitLine: function (axisModel, gridModel, labelInterval) {
         var axis = axisModel.axis;
 
         if (axis.scale.isBlank()) {
@@ -31554,8 +31518,6 @@ var CartesianAxisView = AxisView.extend({
         }
 
         var splitLineModel = axisModel.getModel('splitLine');
-        //首先通过计算得到坐标偏移量，得不到使用设置
-        var offset = getSplitLineOffset(ecModel) || 0;
         var lineStyleModel = splitLineModel.getModel('lineStyle');
         var lineColors = lineStyleModel.get('color');
 
@@ -31576,37 +31538,49 @@ var CartesianAxisView = AxisView.extend({
         var showMinLabel = axisModel.get('axisLabel.showMinLabel');
         var showMaxLabel = axisModel.get('axisLabel.showMaxLabel');
 
+        var p1 = [];
+        var p2 = [];
         // Simple optimization
         // Batching the lines if color are the same
         var lineStyle = lineStyleModel.getLineStyle();
         for (var i = 0; i < ticksCoords.length; i++) {
-            if (ifIgnoreOnTick(axis, i, lineInterval, ticksCoords.length, showMinLabel, showMaxLabel)) {
+            if (ifIgnoreOnTick(
+                axis, i, lineInterval, ticksCoords.length,
+                showMinLabel, showMaxLabel
+            )) {
                 continue;
             }
+
             var tickCoord = axis.toGlobalCoord(ticksCoords[i]);
 
-            var points = getDrawPoints(isHorizontal, tickCoord, gridRect, offset, linePath.shape);
-            var colorIndex = lineCount++ % lineColors.length;
-            var p1 = points.shift();
-            var j = 0;
-            var p;
-
-            while(p = points.pop()){
-                this._axisGroup.add(new graphic.Line(graphic.subPixelOptimizeLine({
-                    anid: 'line_' + ticks[i] + j,
-                    shape: {
-                        x1: p1[0],
-                        y1: p1[1],
-                        x2: p[0],
-                        y2: p[1]
-                    },
-                    style: zrUtil.defaults({
-                        stroke: lineColors[colorIndex]
-                    }, lineStyle),
-                    silent: true
-                })));
-                j++;
+            if (isHorizontal) {
+                p1[0] = tickCoord;
+                p1[1] = gridRect.y;
+                p2[0] = tickCoord;
+                p2[1] = gridRect.y + gridRect.height;
             }
+            else {
+                p1[0] = gridRect.x;
+                p1[1] = tickCoord;
+                p2[0] = gridRect.x + gridRect.width;
+                p2[1] = tickCoord;
+            }
+
+            var colorIndex = (lineCount++) % lineColors.length;
+            this._axisGroup.add(new Line(subPixelOptimizeLine({
+                anid: 'line_' + ticks[i],
+
+                shape: {
+                    x1: p1[0],
+                    y1: p1[1],
+                    x2: p2[0],
+                    y2: p2[1]
+                },
+                style: defaults({
+                    stroke: lineColors[colorIndex]
+                }, lineStyle),
+                silent: true
+            })));
         }
     },
 
@@ -31963,7 +31937,7 @@ function barLayoutGrid(seriesType, ecModel, api) {
     ecModel.eachSeriesByType(seriesType, function (seriesModel) {
 
         // Check series coordinate, do layout for cartesian2d only
-        if (seriesModel.coordinateSystem.type !== 'cartesian2d') {
+        if (seriesModel.coordinateSystem.type !== 'cartesian2d' && seriesModel.coordinateSystem.type !== 'cartesian3d') {
             return;
         }
 

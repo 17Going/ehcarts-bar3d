@@ -1,10 +1,10 @@
-var echarts = _echarts3;//require('echarts/lib/echarts');
+var echarts = require('echarts/lib/echarts');
 var zrUtil = echarts.util;
 var graphic = echarts.graphic;
 var helper = require('./helper');
 var colorTool = echarts.color; 
 var BAR_BORDER_WIDTH_QUERY = ['itemStyle', 'normal', 'barBorderWidth'];
-var graph = require('./bar3dLayout');
+var graph = require('./bar3dPath');
 
 zrUtil.extend(echarts.Model.prototype, require('./barItemStyle'));
 
@@ -634,7 +634,7 @@ function updateCylinderStyle(el, data, dataIndex, itemModel, layout, seriesModel
     var front = el.childOfName('front'),
         bottom = el.childOfName('bottom'),
         top = el.childOfName('top'),
-        text = el.childOfName('text'),
+        text = el.childOfName('text');
 
     // front.setShape('r', itemStyleModel.get('barBorderRadius') || 0);
     top.useStyle(zrUtil.defaults(

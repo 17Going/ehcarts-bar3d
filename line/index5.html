@@ -12,7 +12,7 @@
     <!-- <script src="https://cdn.bootcss.com/echarts/3.8.4/echarts.js"></script> -->
     <!-- <script src="https://cdn.bootcss.com/require.js/2.1.20/require.js"></script> -->
     <script src="echarts.js"></script>
-    <!-- <script src='../dist/echarts-graph3d.js'></script> -->
+    <script src='../dist/echarts-graph3d2.js'></script>
 </head>
 
 <body>
@@ -34,32 +34,23 @@
     <div id="main"></div>
 </body>
 <script>
-
-   var color = new echarts.graphic.LinearGradient(
-        0, 1, 0 , 0,
-        [
-            { offset: 0, color: 'rgba(255, 240, 178, 0.1)' },
-            { offset: 1, color: 'rgba(255, 240, 178, 1)'}
-        ]
-    );
-
     var chart = echarts.init(document.getElementById('main'), null, {
         renderer: 'canvas'
     });
-    function getData() {
 
+    var num = 20;
+    function getData() {
         var result = [];
-        for(var i = 0; i < 10; i++){
+        for (var i = 0; i < num; i++) {
             result.push(Math.floor(400 * Math.random()))
         }
-
         return result;
     }
 
     function getLData() {
 
         var result = [];
-        for(var i = 0; i < 10; i++){
+        for (var i = 0; i < num; i++) {
             result.push('Wed' + i)
         }
 
@@ -77,37 +68,63 @@
     }
 
     var option = {
-
-        xAxis: {
-            type: 'category',
-            data: getLData(),
-            splitLine: { show: false }
+        title: {
+            text: '堆叠区域图'
         },
-        yAxis: {
-            type: 'value',
-            splitLine: { show: false },
-        },
-        legend: {
-            data:['邮件营销']
-        },
-        dataZoom: {
-          type: 'inside'
-        },
-        series: [{
-            data: getData(),
-            type: 'bar',
-            name: '邮件营销',
-            areaStyle: {
-                normal: {
-                    color: color,
-                    borderColor: '#ffd015',
-                    topFaceColor: 'rgba(255, 240, 178, 1)',
-                    faceWidth: 5
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross',
+                label: {
+                    backgroundColor: '#6a7985'
                 }
-            },
-            smooth: 0.3
-        }]
+            }
+        },
+        // legend: {
+        //     data: ['邮件营销', '联盟广告', '视频广告', '直接访问', '搜索引擎']
+        // },
+        toolbox: {
+            feature: {
+                saveAsImage: {}
+            }
+        },
+        // grid: {
+        //     left: '3%',
+        //     right: '4%',
+        //     bottom: '3%',
+        //     containLabel: true
+        // },
+        xAxis: [
+            {
+                type: 'category',
+                boundaryGap: false,
+                splitLine: { show: false },
+                data: getLData()
+            }
+        ],
+        yAxis: [
+            {
+                splitLine: { show: false },
+                type: 'value'
+            }
+        ],
+        series: [
+            {
+                name: '邮件营销',
+                type: 'area3d',
+                areaStyle: {
+                    normal: {
+                        color: '#fff0b2',
+                        faceWidth: 20,
+                        // topFaceColor: 'red'
+                    }
+                },
+                smooth: true,
+                data: getData()
+            }
+        ]
     };
+
     window.chart = chart;
     chart.setOption(option);
 </script>

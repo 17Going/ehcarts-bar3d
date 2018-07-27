@@ -12,7 +12,7 @@
     <!-- <script src="https://cdn.bootcss.com/echarts/3.8.4/echarts.js"></script> -->
     <!-- <script src="https://cdn.bootcss.com/require.js/2.1.20/require.js"></script> -->
     <script src="echarts.js"></script>
-    <!-- <script src='../dist/echarts-graph3d.js'></script> -->
+    <script src='../dist/echarts-graph3d.js'></script>
 </head>
 
 <body>
@@ -36,10 +36,10 @@
 <script>
 
    var color = new echarts.graphic.LinearGradient(
-        0, 1, 0 , 0,
+        0, 0, 0 , 1,
         [
-            { offset: 0, color: 'rgba(255, 240, 178, 0.1)' },
-            { offset: 1, color: 'rgba(255, 240, 178, 1)'}
+            { offset: 0, color: '#0b3649' },
+            { offset: 1, color: '#1595a0'}
         ]
     );
 
@@ -49,7 +49,7 @@
     function getData() {
 
         var result = [];
-        for(var i = 0; i < 10; i++){
+        for(var i = 0; i < 5; i++){
             result.push(Math.floor(400 * Math.random()))
         }
 
@@ -59,7 +59,7 @@
     function getLData() {
 
         var result = [];
-        for(var i = 0; i < 10; i++){
+        for(var i = 0; i < 7; i++){
             result.push('Wed' + i)
         }
 
@@ -77,35 +77,51 @@
     }
 
     var option = {
-
+        // legend: {
+        //     data: ['ss']
+        // },
         xAxis: {
             type: 'category',
             data: getLData(),
-            splitLine: { show: false }
+            axisLabel: { show: true, color: '#5d6476' },
+            splitLine: { 
+                show: true,
+                offset: 25*Math.sin(Math.PI/4)/2,
+                lineStyle: {
+                    // type: 'dashed',
+                    color: '#253046'
+            }},
+            axisLine: {
+                lineStyle: {
+                    color: '#253046',
+                }
+            },
         },
         yAxis: {
             type: 'value',
-            splitLine: { show: false },
-        },
-        legend: {
-            data:['邮件营销']
-        },
-        dataZoom: {
-          type: 'inside'
-        },
-        series: [{
-            data: getData(),
-            type: 'bar',
-            name: '邮件营销',
-            areaStyle: {
-                normal: {
-                    color: color,
-                    borderColor: '#ffd015',
-                    topFaceColor: 'rgba(255, 240, 178, 1)',
-                    faceWidth: 5
+            axisLabel: { show: true, color: '#5d6476'},
+            splitLine: { 
+                show: true,
+                offset: 25*Math.sin(Math.PI/4)/2, 
+                lineStyle: {
+                    color: '#253046'
+            }},
+            axisLine: {
+                lineStyle: {
+                    color: '#253046',
                 }
             },
-            smooth: 0.3
+        },
+        series: [{
+            data: getAData(),
+            type: 'area3d',
+            itemStyle: {
+                normal: {
+                    color: color,
+                    borderColor: '#1595a0',
+                    faceWidth: 5
+                }
+            }
         }]
     };
     window.chart = chart;
