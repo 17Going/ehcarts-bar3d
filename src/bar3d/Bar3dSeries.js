@@ -1,4 +1,4 @@
-var echarts = require('echarts/lib/echarts');
+var echarts = _echarts3;
 
 module.exports = echarts.extendSeriesModel({
 

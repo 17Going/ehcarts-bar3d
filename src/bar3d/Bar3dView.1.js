@@ -293,9 +293,6 @@ function getPoints(shape, isHorizontal) {
     var cosY = Math.floor(r * Math.cos(angle) / 2) + 0.5;
     var sinX = Math.floor(r * Math.sin(angle) / 2) + 0.5;
 
-    var cosY = Math.floor(r * Math.cos(angle) / 2) + 0.2;
-    var sinX = Math.floor(r * Math.sin(angle) / 2) + 0.2;
-
     // isHorizontal ? height = shape.height = (height + cosY/2): width = shape.width = (width - sinX/2);
     // isHorizontal ? x = x - sinX/2 : y = y + cosY/2;
 
@@ -382,20 +379,20 @@ function getBottomShape(shape, points, isHorizontal) {
  * @param {Boolean} isHorizontal 
  */
 function getFrontShape(shape, points, isHorizontal) {
-    var dist = .6;
+
     // 通过点1，点2，再根据宽，高获取其余2个点，设置宽高方便动画
     return isHorizontal ? {
         x: points[0][0],
-        y: points[0][1] - dist,
-        x1: points[1][0] + dist,
-        y1: points[1][1] - dist,
+        y: points[0][1],
+        x1: points[1][0],
+        y1: points[1][1],
         width: 0,
         height: shape.height
     } : {
-            x: points[0][0] + dist,
+            x: points[0][0],
             y: points[0][1],
-            x1: points[1][0] + dist,
-            y1: points[1][1] - dist,
+            x1: points[1][0],
+            y1: points[1][1],
             width: shape.width,
             height: 0
         };
@@ -408,7 +405,7 @@ function getFrontShape(shape, points, isHorizontal) {
  * @param {Boolean} isHorizontal 
  */
 function getFlankShape(shape, points, isHorizontal) {
-    var dist = 1;
+
     // 通过点1，点2，再根据宽，高获取其余2个点，设置宽高方便动画
     return isHorizontal ? {
         x: points[1][0],
@@ -416,25 +413,26 @@ function getFlankShape(shape, points, isHorizontal) {
         x1: points[2][0],
         y1: points[2][1],
         width: 0,
-        height: shape.height - dist
+        height: shape.height
     } : {
             x: points[1][0],
             y: points[1][1],
             x1: points[2][0],
             y1: points[2][1],
-            width: shape.width + dist,
+            width: shape.width,
             height: 0
         };
 }
 
 
 /**
- * 获取立方体左侧面图形参数(命名的时候把方向搞错了 所以方法名是右其实是左)))
+ * 获取立方体右侧面图形参数
  * @param {Object} shape 
  * @param {Array} points 
  * @param {Boolean} isHorizontal 
  */
 function getRightFlankShape(shape, points, isHorizontal) {
+
     // 通过点1，点2，再根据宽，高获取其余2个点，设置宽高方便动画
     return isHorizontal ? {
         x: points[0][0],
@@ -490,12 +488,12 @@ function lerpColor(color, level) {
  * @param {*} opacity 
  */
 function setStyle(path, barStyle, fillColor, strokeColor, opacity) {
-    path && path.useStyle(zrUtil.defaults(
+    path.useStyle(zrUtil.defaults(
         {
             fill: fillColor,
             // stroke: strokeColor,
             opacity: opacity,
-            lineJoin: 'round'
+            lineJoin: 'bevel'
         },
         barStyle
     ));

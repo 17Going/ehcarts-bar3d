@@ -1,5 +1,5 @@
 
-var echarts = require('echarts/lib/echarts');
+var echarts = _echarts3;
 var graphic = echarts.graphic;
 var zrUtil = echarts.util;
 
@@ -7,7 +7,8 @@ var _poly = require("./poly");
 var Polygon = _poly.Polygon;
 var PolygonOver = _poly.PolygonOver;
 
-var SymbolDraw = require('echarts/lib/chart/helper/SymbolDraw');
+var SymbolDraw = require('./SymbolDraw');
+var getBestLightColor = require('../util/util');
 
 var TOP_FACE = 'topFace',
     TOP_FACE_2 = 'topFace2',
@@ -18,7 +19,6 @@ var TOP_FACE = 'topFace',
 
 
 zrUtil.extend(echarts.Model.prototype, require('./Area3dStyle'));
-
 
 
 /**
@@ -36,7 +36,6 @@ var _default = echarts.extendChartView({
     render: function (seriesModel, ecModel, api) {
         var coordSys = seriesModel.coordinateSystem;
         var oldData = this._data;
-        var group = this.group;
         var data = seriesModel.getData();
         var baseAxis = coordSys.getBaseAxis();
         var isHorizontal = baseAxis.isHorizontal();
@@ -58,17 +57,17 @@ var _default = echarts.extendChartView({
         createArea(this._lineGroup, data, coordSys, seriesModel, isHorizontal, hasAnimation);
         updateStyle(this._lineGroup, data, coordSys, seriesModel, isHorizontal);
 
-        data.diff(oldData)
-            .add(function (dataIndex) {
-                // console.log(dataIndex)
-            })
-            .update(function (newIndex, oldIndex) {
-                console.log('update')
-            })
-            .remove(function (dataIndex) {
-                console.log('remove')
-            })
-            .execute();
+        // data.diff(oldData)
+        //     .add(function (dataIndex) {
+        //         // console.log(dataIndex)
+        //     })
+        //     .update(function (newIndex, oldIndex) {
+        //         console.log('update')
+        //     })
+        //     .remove(function (dataIndex) {
+        //         console.log('remove')
+        //     })
+        //     .execute();
         this._data = data;
     },
 
@@ -90,7 +89,7 @@ var _default = echarts.extendChartView({
  * @param {*} seriesModel 
  */
 function createGridClipShape(cartesian, hasAnimation, seriesModel) {
-    var faceWidth = seriesModel.get('areaStyle.normal.faceWidth');
+    var faceWidth = seriesModel.get('faceWidth');
     var xExtent = getAxisExtentWithGap(cartesian.getAxis('x'));
     var yExtent = getAxisExtentWithGap(cartesian.getAxis('y'));
     var isHorizontal = cartesian.getBaseAxis().isHorizontal();
@@ -211,9 +210,10 @@ function getSmooth(smooth) {
 function createShape(g, Poly, name, shape, smooth, z2, seriesModel) {
     var graph;
     if (graph = g.childOfName(name)) {
-        graphic.updateProps(graph, {
-            shape: shape
-        }, seriesModel);
+        // graphic.updateProps(graph, {
+        //     shape: shape
+        // }, seriesModel);
+        graph.setShape(shape);
     } else {
         graph = new Poly({
             name: name,
@@ -237,9 +237,8 @@ function createShape(g, Poly, name, shape, smooth, z2, seriesModel) {
  */
 function createArea(g, data, coordSys, seriesModel, isHorizontal, hasAnimation) {
     var count = g.childCount();
-    var areaStyleModel = seriesModel.getModel('areaStyle.normal');
     // 获取面宽
-    var faceWidth = areaStyleModel.get('faceWidth');
+    var faceWidth = seriesModel.get('faceWidth');
 
     //获取点数据
     var points = data.mapArray(data.getItemLayout, true);
@@ -268,7 +267,7 @@ function createArea(g, data, coordSys, seriesModel, isHorizontal, hasAnimation) 
     };
 
     // 绘制顶面
-    createShape(g, PolygonOver, TOP_FACE, shape, smooth, 10, seriesModel);
+    createShape(g, PolygonOver, TOP_FACE, shape, smooth, 11, seriesModel);
 
     // 顶面2，绘制顶面1无法填充的地方
     createShape(g, Polygon, TOP_FACE_2, shape, smooth, 10, seriesModel);
@@ -282,15 +281,15 @@ function createArea(g, data, coordSys, seriesModel, isHorizontal, hasAnimation) 
 
     // 绘制右侧面
     createShape(g, Polygon, RIGHT_FACE, {
-        points: [points[lastIndex], upPoints[lastIndex]],
-        stackedOnPoints: [stackedOnPoints[lastIndex], upStackedOnPoints[lastIndex]]
-    }, smooth, 11, seriesModel);
+        points: points[lastIndex] ? [points[lastIndex], upPoints[lastIndex]] : [],
+        stackedOnPoints: stackedOnPoints[lastIndex] ? [stackedOnPoints[lastIndex], upStackedOnPoints[lastIndex]] : []
+    }, smooth, 12, seriesModel);
 
     //绘制正面
     createShape(g, Polygon, FRONT_FACE, {
         points: points,
         stackedOnPoints: stackedOnPoints
-    }, smooth, 10, seriesModel);
+    }, smooth, 12, seriesModel);
 
     // 绘制背面(看不见)
     /*createShape(g, Polygon, BACK_FACE, {
@@ -298,7 +297,7 @@ function createArea(g, data, coordSys, seriesModel, isHorizontal, hasAnimation) 
         stackedOnPoints: upStackedOnPoints
     }, smooth, 0, seriesModel);*/
 
-    !count && g.setClipPath(createGridClipShape(coordSys, hasAnimation, seriesModel));
+    g.setClipPath(createGridClipShape(coordSys, !count ? hasAnimation : false, seriesModel));
 }
 
 /**
@@ -318,12 +317,27 @@ function getPoint(point, index, faceWidth, isHorizontal) {
  * @param {0~1} level 
  * @param {color} color 
  */
-function lerpColor(level, color) {
+function lerpColor(color, level) {
     var colorUtil = echarts.color;
     if (!zrUtil.isString(color)) {
         return color;
     }
     return colorUtil.lerp(level, [color, '#000']);
+}
+
+/**
+ * 颜色高亮
+ * @param {String|Object} color 
+ * @param {Number| -1~1} level 
+ */
+function liftColor(color, level) {
+    var colorUtil = echarts.color;
+    if (typeof color == 'string') {
+        return colorUtil.lift(color, level)
+    } else {
+        // 设置的是渐变色,不改变
+        return color;
+    }
 }
 
 /**
@@ -338,9 +352,13 @@ function getGradientColor(color, data, coordSys, isHorizontal) {
     color = zrUtil.clone(color);
     var colorUtil = echarts.color;
 
+    if(!color) { // 未设置颜色时返回
+        return;
+    }
+
     // 不是渐变色不需要处理
     if (zrUtil.isString(color)) {
-        return lerpColor(0.4, color);
+        return lerpColor(color, 0.2);
     }
 
     var colorStops = color.colorStops;
@@ -372,8 +390,8 @@ function getGradientColor(color, data, coordSys, isHorizontal) {
     var valueAxis = coordSys.getOtherAxis(baseAxis);
     var height = valueAxis.toGlobalCoord(0);
 
-    var value;
-    if (isHorizontal) {
+    var value = 0;
+    if (isHorizontal && points[len -1]) {
         value = points[len - 1][1];
     }
     var level = Math.abs(value / height);// 计算坐标所在位置是坐标系中的什么位置
@@ -406,29 +424,32 @@ function setStyle(g, name, areaStyle, options) {
  * @param {*} isHorizontal 
  */
 function updateStyle(g, data, coordSys, itemModel, isHorizontal) {
-    var areaStyleModel = itemModel.getModel('areaStyle.normal');
+    var itemStyleModel = itemModel.getModel('itemStyle.normal');
     var visualColor = data.getVisual('color');
-    var areaStyle = areaStyleModel.getArea3dStyle();
-    var color = areaStyle.fill || visualColor;
+    var itemStyle = itemStyleModel.getItemStyle();
+    var color = itemStyle.fill || visualColor;
 
     var rightColor = getGradientColor(color, data, coordSys, isHorizontal);
+    var topColor = getBestLightColor(color);
 
     // 设置顶面的样式
-    setStyle(g, TOP_FACE, areaStyle, {
-        fill: lerpColor(0.3, color)
+    setStyle(g, TOP_FACE, itemStyle, {
+        fill: liftColor(topColor, 0.2),
+        stroke: 'none'
     });
-    setStyle(g, TOP_FACE_2, areaStyle, {
-        fill: lerpColor(0.3, color)
+
+    setStyle(g, TOP_FACE_2, itemStyle, {
+        fill: liftColor(topColor, 0.2)
     });
 
     // 设置正面样式
-    setStyle(g, FRONT_FACE, areaStyle, {
+    setStyle(g, FRONT_FACE, itemStyle, {
         fill: color,
-        opacity: 1
+        // opacity: 1
     });
 
     // 设置右侧面样式
-    setStyle(g, RIGHT_FACE, areaStyle, {
+    setStyle(g, RIGHT_FACE, itemStyle, {
         fill: rightColor
     });
 }

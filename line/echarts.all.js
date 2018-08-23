@@ -3,7 +3,7 @@
 */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define('echarts', ['exports'], factory) :
+	//typeof define === 'function' && define.amd ? define("echarts3",['exports'], factory) :
 	(factory((global._echarts3 = {})));
 }(this, (function (exports) { 'use strict';
 
@@ -14,7 +14,6 @@
 // And tools like rollup can not analysis the dependency if not import).
 
 var dev;
-
 // In browser
 if (typeof window !== 'undefined') {
     dev = window.__DEV__;
@@ -6451,7 +6450,7 @@ Style.prototype = {
         var colorStops = obj.colorStops;
         for (var i = 0; i < colorStops.length; i++) {
             canvasGradient.addColorStop(
-                colorStops[i].offset, colorStops[i].color
+                colorStops[i].offset, (colorStops[i].color || "rgba(170,170,170,1)")                     //change by sf1758
             );
         }
         return canvasGradient;
@@ -11466,9 +11465,9 @@ function formatTplSimple(tpl, param, encode) {
  * @return {string}
  */
 function getTooltipMarker(color, extraCssText) {
-     return color
-        ? '<span style="display:inline-block;margin-right:'+5*tinyWidget.util.getScale()+'px;vertical-align:middle;'
-            + 'border-radius:'+10*tinyWidget.util.getScale()+'px;width:'+9*tinyWidget.util.getScale()+'px;height:'+9*tinyWidget.util.getScale()+'px;background-color:'
+    return color
+        ? '<span style="display:inline-block;margin-right:5px;'
+            + 'border-radius:10px;width:9px;height:9px;background-color:'
             + encodeHTML(color) + ';' + (extraCssText || '') + '"></span>'
         : '';
 }
@@ -17241,32 +17240,22 @@ var dataFormatMixin = {
         var itemOpt = data.getRawDataItem(dataIndex);
         var color = data.getItemVisual(dataIndex, 'color');
 
-        /*yl原始值处理*/
-        var rawValue_UI = this.getUIRawValue(dataIndex, dataType);
-        var name_UI = data.getName_UI(dataIndex, true);
-        var itemOpt_UI = data.getUIRawDataItem(dataIndex);
-
         var resultPar = {
             componentType: this.mainType,
             componentSubType: this.subType,
             seriesType: this.mainType === 'series' ? this.subType : null,
             seriesIndex: this.seriesIndex,
             seriesId: this.id,
-            seriesName: this.name,
             unitText_UI: this.unitText_UI,
             fixedBit_UI: this.fixedBit_UI,
-            seriesName_UI: this.name_UI,
+            seriesName: this.name,
             name: name,
-            name_UI: name_UI,
             dataIndex: rawDataIndex,
             data: itemOpt,
-            data_UI: itemOpt_UI,
             dataType: dataType,
             value: rawValue,
-            value_UI: rawValue_UI,
             color: color,
             marker: getTooltipMarker(color),
-
 
             // Param name list for mapping `a`, `b`, `c`, `d`, `e`
             $vars: ['seriesName', 'name', 'value']
@@ -17317,21 +17306,6 @@ var dataFormatMixin = {
     getRawValue: function (idx, dataType) {
         var data = this.getData(dataType);
         var dataItem = data.getRawDataItem(idx);
-        if (dataItem != null) {
-            return (isObject$2(dataItem) && !(dataItem instanceof Array))
-                ? dataItem.value : dataItem;
-        }
-    },
-
-    /**
-     * Get original raw value in option yl
-     * @param {number} idx
-     * @param {string} [dataType]
-     * @return {Object}
-     */
-    getUIRawValue: function (idx, dataType) {
-        var data = this.getData(dataType);
-        var dataItem = data.getUIRawDataItem(idx);
         if (dataItem != null) {
             return (isObject$2(dataItem) && !(dataItem instanceof Array))
                 ? dataItem.value : dataItem;
@@ -17501,23 +17475,17 @@ function makeIdAndName(mapResult) {
             ? existCpt.name
             : '\0-'; // name may be displayed on screen, so use '-'.
 
-
-        keyInfo.name_UI = opt.name_UI != null
-            ? opt.name_UI + ''
-            : existCpt
-            ? existCpt.name
-            : '\0-'; // name may be displayed on screen, so use '-'.  yl UI 原始值
-
         keyInfo.unitText_UI = opt.unitText_UI != null
             ? opt.unitText_UI + ''
             : existCpt
             ? existCpt.name
-            : ''; // name may be displayed on screen, so use '-'.  yl UI 原始值
+            : ''; // name may be displayed on screen, so use '-'.  yl UI 单位处理
+
         keyInfo.fixedBit_UI = opt.fixedBit_UI != null
             ? opt.fixedBit_UI + ''
             : existCpt
             ? existCpt.name
-            : ''; // name may be displayed on screen, so use '-'.  yl UI 原始值
+            : ''; // name may be displayed on screen, so use '-'.  yl UI 单位处理
 
         if (existCpt) {
             keyInfo.id = existCpt.id;
@@ -18863,14 +18831,13 @@ var GlobalModel = Model.extend({
                 return;
             }
             if (!ComponentModel.hasClass(mainType)) {
-                 //解决echart3组件图例展示颜色错误  nts 2017.12.28
+                //解决echart3组件图例展示颜色错误  nts 2017.12.28
                 if(mainType == 'color'){
                     option[mainType] = option[mainType] == null ? clone(componentOption) : clone(componentOption);
                 }else{
                     option[mainType] = option[mainType] == null ? clone(componentOption): merge(option[mainType], componentOption, true);
                 }
-            }
-            else {
+            }else {
                 newCptTypes.push(mainType);
             }
         });
@@ -23142,7 +23109,7 @@ var dataCtors = {
 };
 
 var TRANSFERABLE_PROPERTIES = [
-    'stackedOn', 'hasItemOption', '_nameList', '_idList', '_rawData', '_UI_rawData', '_nameList_UI', '_idList_UI'
+    'stackedOn', 'hasItemOption', '_nameList', '_idList', '_rawData'
 ];
 
 function transferProperties(a, b) {
@@ -23358,13 +23325,12 @@ listProto.getDimensionInfo = function (dim) {
  * @param {Array.<string>} [nameList]
  * @param {Function} [dimValueGetter] (dataItem, dimName, dataIndex, dimIndex) => number
  */
-listProto.initData = function (data, nameList, dimValueGetter, data_UI, nameList_UI) {
+listProto.initData = function (data, nameList, dimValueGetter, UI_OriginalData) {
     data = data || [];
 
     var isDataArray = isArray(data);
     if (isDataArray) {
         data = new DefaultDataProvider(data);
-        data_UI = new DefaultDataProvider(data_UI);
     }
     if (__DEV__) {
         if (!isDataArray && (typeof data.getItem != 'function' || typeof data.count != 'function')) {
@@ -23373,7 +23339,7 @@ listProto.initData = function (data, nameList, dimValueGetter, data_UI, nameList
     }
 
     this._rawData = data;
-    this._UI_rawData = data_UI;
+    this._UI_rawData = UI_OriginalData;
 
     // Clear
     var storage = this._storage = {};
@@ -23387,10 +23353,8 @@ listProto.initData = function (data, nameList, dimValueGetter, data_UI, nameList
     var idList = [];
     var nameRepeatCount = {};
     var nameDimIdx;
-    var UIidList = [];
 
     nameList = nameList || [];
-    nameList_UI = nameList_UI || [];
 
     // Init storage
     for (var i = 0; i < dimensions.length; i++) {
@@ -23444,21 +23408,18 @@ listProto.initData = function (data, nameList, dimValueGetter, data_UI, nameList
     // Use the name in option and create id
     for (var i = 0; i < size; i++) {
         var dataItem = data.getItem(i);
-        var dataItem_UI = data_UI.getItem(i);
         if (!nameList[i] && dataItem) {
             if (dataItem.name != null) {
                 nameList[i] = dataItem.name;
-                nameList_UI[i] = dataItem_UI ? dataItem_UI.name : undefined;
             }
             else if (nameDimIdx != null) {
                 nameList[i] = storage[dimensions[nameDimIdx]][i];
             }
         }
         var name = nameList[i] || '';
-        var UIname = nameList_UI[i] || '';
         // Try using the id in option
         var id = dataItem && dataItem.id;
-        var UIid;
+
         if (!id && name) {
             // Use name as id and add counter to avoid same name
             nameRepeatCount[name] = nameRepeatCount[name] || 0;
@@ -23467,17 +23428,12 @@ listProto.initData = function (data, nameList, dimValueGetter, data_UI, nameList
                 id += '__ec__' + nameRepeatCount[name];
             }
             nameRepeatCount[name]++;
-
-            UIid = UIname;
         }
         id && (idList[i] = id);
-        UIid && (UIidList[i] = UIid);
     }
 
     this._nameList = nameList;
     this._idList = idList;
-    this._nameList_UI = nameList_UI; //UI 添加
-    this._idList_UI = UIidList; //UI 添加
 };
 
 /**
@@ -23755,16 +23711,7 @@ listProto.getRawIndex = function (idx) {
 };
 
 /**
- * Get raw data item  yl
- * @param {number} idx
- * @return {number}
- */
-listProto.getUIRawDataItem = function (idx) {
-    return this._UI_rawData.getItem(this.getRawIndex(idx));
-};
-
-/**
- * Get original raw data item
+ * Get raw data item
  * @param {number} idx
  * @return {number}
  */
@@ -23779,15 +23726,6 @@ listProto.getRawDataItem = function (idx) {
  */
 listProto.getName = function (idx) {
     return this._nameList[this.indices[idx]] || '';
-};
-
-/**
- * @param {number} idx
- * @param {boolean} [notDefaultIdx=false]
- * @return {string}
- */
-listProto.getName_UI = function (idx) {
-    return this._nameList_UI[this.indices[idx]] || '';
 };
 
 /**
@@ -24558,7 +24496,7 @@ function ifNeedCompleteOrdinalData(data) {
 /**
  * Helper function to create a list from option data
  */
-function createListFromArray(data, seriesModel, ecModel, data_UI) {
+function createListFromArray(data, seriesModel, ecModel, UI_OriginalData) {
     // If data is undefined
     data = data || [];
 
@@ -24578,19 +24516,6 @@ function createListFromArray(data, seriesModel, ecModel, data_UI) {
 
     // FIXME
     var axesInfo = creator && creator(data, seriesModel, ecModel, completeDimOpt);
-    // UI 原始值处理 yl
-    if(creator) {
-        if(seriesModel.option.data_UI != undefined) {
-            var originalUIDataFlg = true;
-        }
-        if(originalUIDataFlg) {
-            var copySeriesModel = $.extend(true, {}, seriesModel);
-            copySeriesModel.option.data = copySeriesModel.option.data_UI;
-            copySeriesModel.option.name = copySeriesModel.option.name_UI;
-            var axes_UIInfo = creator && creator(data, copySeriesModel, ecModel, completeDimOpt);
-        }
-    }
-
     var dimensions = axesInfo && axesInfo.dimensions;
     if (!dimensions) {
         // Get dimensions from registered coordinate system
@@ -24607,8 +24532,6 @@ function createListFromArray(data, seriesModel, ecModel, data_UI) {
     var list = new List(dimensions, seriesModel);
 
     var nameList = createNameList(axesInfo, data);
-
-    var nameList_UI = originalUIDataFlg && createNameList_UI(axes_UIInfo, data_UI);
 
     var categories = {};
     var dimValueGetter = (categoryIndex >= 0 && ifNeedCompleteOrdinalData(data))
@@ -24649,7 +24572,7 @@ function createListFromArray(data, seriesModel, ecModel, data_UI) {
         };
 
     list.hasItemOption = false;
-    list.initData(data, nameList, dimValueGetter, data_UI, nameList_UI);
+    list.initData(data, nameList, dimValueGetter, UI_OriginalData);
 
     return list;
 }
@@ -24852,42 +24775,6 @@ function createNameList(result, data) {
         var categories = categoryAxisModel.getCategories();
         if (categories) {
             var dataLen = data.length;
-            // Ordered data is given explicitly like
-            // [[3, 0.2], [1, 0.3], [2, 0.15]]
-            // or given scatter data,
-            // pick the category
-            if (isArray(data[0]) && data[0].length > 1) {
-                nameList = [];
-                for (var i = 0; i < dataLen; i++) {
-                    nameList[i] = categories[data[i][result.categoryIndex || 0]];
-                }
-            }
-            else {
-                nameList = categories.slice(0);
-            }
-        }
-    }
-
-    return nameList;
-}
-
-// yl UI原始值复制
-function createNameList_UI(result, data) {
-    var nameList = [];
-
-    var categoryDim = result && result.dimensions[result.categoryIndex];
-    var categoryAxisModel;
-    if (categoryDim) {
-        categoryAxisModel = result.categoryAxesModels[categoryDim.name];
-    }
-    if(!data){
-        data = [];
-    }
-    if (categoryAxisModel) {
-        // FIXME Two category axis
-        var categories = categoryAxisModel.getCategories_UI();
-        if (categories) {
-            var dataLen = data ? data.length : 0;
             // Ordered data is given explicitly like
             // [[3, 0.2], [1, 0.3], [2, 0.15]]
             // or given scatter data,
@@ -26118,14 +26005,6 @@ var axisModelCommonMixin = {
     },
 
     /**
-     * Get categories UI yl
-     */
-    getCategories_UI: function () {
-        return this.get('type') === 'category'
-            && map(this.get('data_UI'), getName);
-    },
-
-    /**
      * @param {boolean} origin
      * @return {number|string} min value or 'dataMin' or null/undefined (means auto) or NaN
      */
@@ -27212,7 +27091,7 @@ SeriesModel.extend({
                 throw new Error('Line not support coordinateSystem besides cartesian and polar');
             }
         }
-        return createListFromArray(option.data, this, ecModel, option.data_UI);
+        return createListFromArray(option.data, this, ecModel);
     },
 
     defaultOption: {
@@ -31549,13 +31428,84 @@ var selfBuilderAttrs = [
     'splitArea', 'splitLine'
 ];
 
-// function getAlignWithLabel(model, axisModel) {
-//     var alignWithLabel = model.get('alignWithLabel');
-//     if (alignWithLabel === 'auto') {
-//         alignWithLabel = axisModel.get('axisTick.alignWithLabel');
-//     }
-//     return alignWithLabel;
-// }
+/**
+ * 通过全局模型获取柱宽，再通过一定算法得到偏移量
+ * @param {Global} ecModel 
+ */
+function getSplitLineOffset(ecModel){
+    var seriesModel = ecModel.getSeriesByType('bar3d')[0] || ecModel.getSeriesByType('area3d')[0] ;
+    if(!seriesModel){
+        return null;
+    }
+    var sereisType = seriesModel.subType;
+    if(sereisType === 'bar3d'){
+        var cartesian = seriesModel.coordinateSystem;
+        var barLength = seriesModel.get('barLength') || 0; 
+        var baseAxis = cartesian.getBaseAxis();
+        var isHorizontal = baseAxis.isHorizontal();
+        var data = seriesModel.getData();
+        var layout = data.getItemLayout(0) || {};
+    
+        return isHorizontal ? cvtOffset(Math.max(layout.width, barLength)) :
+            cvtOffset(Math.max(layout.height, barLength));
+    } else {
+        var faceWidth = seriesModel.get('faceWidth') || 0; 
+        return faceWidth;
+    }
+}
+
+/**
+ * 根据立方体柱子的算法来转换宽度得到偏移量
+ * @param {Number} barWidth 
+ */
+function cvtOffset(barWidth) {
+    return barWidth*Math.sin(Math.PI/4)/2
+}
+
+/**
+ * 获取分割线绘制坐标点
+ */
+function getDrawPoints(isHorizontal, tickCoord, gridRect, offset, shape) {
+    var top = [], bottom = [], center = [], ax = [];
+    if(isHorizontal){
+        var y = shape.y1;
+        // 顶点坐标
+        top[0] = tickCoord + offset;
+        top[1] = gridRect.y - offset;
+
+        // 底点坐标
+        bottom[0] = tickCoord + offset;
+        bottom[1] = gridRect.y + gridRect.height - offset;
+
+        //中心坐标
+        center[0] = tickCoord + offset;
+        center[1] = y - offset;
+
+        // 坐标轴上点
+        ax[0] = tickCoord;
+        ax[1] = y;
+    } else {
+        var x = shape.x1;
+        // 顶点坐标
+        top[0] = gridRect.x + offset;
+        top[1] = tickCoord - offset;
+        
+        // 底点坐标
+        bottom[0] = gridRect.x + gridRect.width + offset;
+        bottom[1] = tickCoord - offset;
+
+        //中心坐标
+        center[0] = x + offset;
+        center[1] = tickCoord - offset;
+
+        // // 坐标轴上点
+        ax[0] = x;
+        ax[1] = tickCoord;
+    }
+    
+    return [center, top, bottom, ax];
+}
+
 
 var CartesianAxisView = AxisView.extend({
 
@@ -31591,7 +31541,7 @@ var CartesianAxisView = AxisView.extend({
 
         each$1(selfBuilderAttrs, function (name) {
             if (axisModel.get(name + '.show')) {
-                this['_' + name](axisModel, gridModel, layout$$1.labelInterval);
+                this['_' + name](axisModel, gridModel, layout$$1.labelInterval, ecModel, axisBuilder.getGroup().childAt(0));
             }
         }, this);
 
@@ -31606,7 +31556,7 @@ var CartesianAxisView = AxisView.extend({
      * @param {number|Function} labelInterval
      * @private
      */
-    _splitLine: function (axisModel, gridModel, labelInterval) {
+    _splitLine: function (axisModel, gridModel, labelInterval, ecModel, linePath) {
         var axis = axisModel.axis;
 
         if (axis.scale.isBlank()) {
@@ -31614,6 +31564,8 @@ var CartesianAxisView = AxisView.extend({
         }
 
         var splitLineModel = axisModel.getModel('splitLine');
+        //首先通过计算得到坐标偏移量，得不到使用设置
+        var offset = getSplitLineOffset(ecModel) || 0;
         var lineStyleModel = splitLineModel.getModel('lineStyle');
         var lineColors = lineStyleModel.get('color');
 
@@ -31634,49 +31586,37 @@ var CartesianAxisView = AxisView.extend({
         var showMinLabel = axisModel.get('axisLabel.showMinLabel');
         var showMaxLabel = axisModel.get('axisLabel.showMaxLabel');
 
-        var p1 = [];
-        var p2 = [];
         // Simple optimization
         // Batching the lines if color are the same
         var lineStyle = lineStyleModel.getLineStyle();
         for (var i = 0; i < ticksCoords.length; i++) {
-            if (ifIgnoreOnTick(
-                axis, i, lineInterval, ticksCoords.length,
-                showMinLabel, showMaxLabel
-            )) {
+            if (ifIgnoreOnTick(axis, i, lineInterval, ticksCoords.length, showMinLabel, showMaxLabel)) {
                 continue;
             }
-
             var tickCoord = axis.toGlobalCoord(ticksCoords[i]);
 
-            if (isHorizontal) {
-                p1[0] = tickCoord;
-                p1[1] = gridRect.y;
-                p2[0] = tickCoord;
-                p2[1] = gridRect.y + gridRect.height;
-            }
-            else {
-                p1[0] = gridRect.x;
-                p1[1] = tickCoord;
-                p2[0] = gridRect.x + gridRect.width;
-                p2[1] = tickCoord;
-            }
+            var points = getDrawPoints(isHorizontal, tickCoord, gridRect, offset, linePath.shape);
+            var colorIndex = lineCount++ % lineColors.length;
+            var p1 = points.shift();
+            var j = 0;
+            var p;
 
-            var colorIndex = (lineCount++) % lineColors.length;
-            this._axisGroup.add(new Line(subPixelOptimizeLine({
-                anid: 'line_' + ticks[i],
-
-                shape: {
-                    x1: p1[0],
-                    y1: p1[1],
-                    x2: p2[0],
-                    y2: p2[1]
-                },
-                style: defaults({
-                    stroke: lineColors[colorIndex]
-                }, lineStyle),
-                silent: true
-            })));
+            while(p = points.pop()){
+                this._axisGroup.add(new graphic.Line(graphic.subPixelOptimizeLine({
+                    anid: 'line_' + ticks[i] + j,
+                    shape: {
+                        x1: p1[0],
+                        y1: p1[1],
+                        x2: p[0],
+                        y2: p[1]
+                    },
+                    style: zrUtil.defaults({
+                        stroke: lineColors[colorIndex]
+                    }, lineStyle),
+                    silent: true
+                })));
+                j++;
+            }
         }
     },
 
@@ -32137,7 +32077,7 @@ var BaseBarSeries = SeriesModel.extend({
     type: 'series.__base_bar__',
 
     getInitialData: function (option, ecModel) {
-        return createListFromArray(option.data, this, ecModel, option.data_UI);
+        return createListFromArray(option.data, this, ecModel, option.UI_OriginalData);
     },
 
     getMarkerPosition: function (value) {
@@ -32649,7 +32589,7 @@ var PieSeries = extendSeriesModel({
     getInitialData: function (option, ecModel) {
         var dimensions = completeDimensions(['value'], option.data);
         var list = new List(dimensions, this);
-        list.initData(option.data,null ,null , option.data_UI);
+        list.initData(option.data);
         return list;
     },
 
@@ -50673,7 +50613,7 @@ SeriesModel.extend({
     type: 'series.heatmap',
 
     getInitialData: function (option, ecModel) {
-        return createListFromArray(option.data, this, ecModel, option.data_UI);
+        return createListFromArray(option.data, this, ecModel);
     },
 
     defaultOption: {
@@ -74910,6 +74850,5 @@ exports.Model = Model;
 exports.Axis = Axis;
 exports.env = env$1;
 exports.parseGeoJson = parseGeoJson;
-
 })));
 //# sourceMappingURL=echarts.js.map

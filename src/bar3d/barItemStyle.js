@@ -1,7 +1,7 @@
 var makeStyleMapper = require("echarts/lib/model/mixin/makeStyleMapper");
 
 var getBarItemStyle = makeStyleMapper([['fill', 'color'], ['stroke', 'borderColor'], ['lineWidth', 'borderWidth'], // Compatitable with 2
-['stroke', 'barBorderColor'], ['lineWidth', 'barBorderWidth'], ['opacity'], ['shadowBlur'], ['shadowOffsetX'], ['shadowOffsetY'], ['shadowColor']]);
+['stroke', 'borderColor'], ['opacity'], ['shadowBlur'], ['shadowOffsetX'], ['shadowOffsetY'], ['shadowColor']]);
 var _default = {
     getBarItemStyle: function (excludes) {
         var style = getBarItemStyle(this, excludes);

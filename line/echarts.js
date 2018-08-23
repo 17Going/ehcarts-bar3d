@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define('echarts25', ['exports'], factory) :
-	(factory((global.echarts = {})));
+	typeof define === 'function' && define.amd ? define('_echarts3', ['exports'], factory) :
+    (factory((global._echarts3 = global.echarts = {})));
 }(this, (function (exports) { 'use strict';
 
 // (1) The code `if (__DEV__) ...` can be removed by build tool.
@@ -26040,24 +26040,6 @@ var axisModelCommonMixin = {
 
 // Symbol factory
 
-var coils = graphic.extendShape({
-    type: 'coils',
-    shape: {
-      cx: 0,
-      cy: 0,
-      width: 0,
-      height: 0
-    },
-    buildPath: function (path, shape) {
-      var cx = shape.cx;
-      var cy = shape.cy;
-      var width = shape.width / 2;
-      var height = shape.height / 2;
-      path.arc(cx, cy, Math.min(width, height), 0, 2*Math.PI)
-      path.closePath();
-    }
-  });
-
 /**
  * Triangle shape
  * @inner
@@ -26215,9 +26197,7 @@ var symbolCtors = {
 
     arrow: Arrow,
 
-    triangle: Triangle,
-
-    coils: coils
+    triangle: Triangle
 };
 
 var symbolShapeMakers = {
@@ -26282,13 +26262,6 @@ var symbolShapeMakers = {
     },
 
     triangle: function (x, y, w, h, shape) {
-        shape.cx = x + w / 2;
-        shape.cy = y + h / 2;
-        shape.width = w;
-        shape.height = h;
-    },
-
-    coils: function (x, y, w, h, shape) {
         shape.cx = x + w / 2;
         shape.cy = y + h / 2;
         shape.width = w;
@@ -31429,19 +31402,25 @@ var selfBuilderAttrs = [
  * @param {Global} ecModel 
  */
 function getSplitLineOffset(ecModel){
-    var seriesModel = ecModel.getSeriesByType('bar3d')[0];
+    var seriesModel = ecModel.getSeriesByType('bar3d')[0] || ecModel.getSeriesByType('area3d')[0] ;
     if(!seriesModel){
         return null;
     }
-    var cartesian = seriesModel.coordinateSystem;
-    var barLength = seriesModel.get('barLength') || 0; 
-    var baseAxis = cartesian.getBaseAxis();
-    var isHorizontal = baseAxis.isHorizontal();
-    var data = seriesModel.getData();
-    var layout = data.getItemLayout(0) || {};
-
-    return isHorizontal ? cvtOffset(Math.max(layout.width, barLength)) :
-        cvtOffset(Math.max(layout.height, barLength));
+    var sereisType = seriesModel.subType;
+    if(sereisType === 'bar3d'){
+        var cartesian = seriesModel.coordinateSystem;
+        var barLength = seriesModel.get('barLength') || 0; 
+        var baseAxis = cartesian.getBaseAxis();
+        var isHorizontal = baseAxis.isHorizontal();
+        var data = seriesModel.getData();
+        var layout = data.getItemLayout(0) || {};
+    
+        return isHorizontal ? cvtOffset(Math.max(layout.width, barLength)) :
+            cvtOffset(Math.max(layout.height, barLength));
+    } else {
+        var faceWidth = seriesModel.get('faceWidth') || 0; 
+        return faceWidth;
+    }
 }
 
 /**
@@ -74842,4 +74821,4 @@ exports.env = env$1;
 exports.parseGeoJson = parseGeoJson;
 
 })));
-//# sourceMappingURL=echarts.js.map
+

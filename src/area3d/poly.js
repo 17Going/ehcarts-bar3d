@@ -1,5 +1,4 @@
-var echarts = require('echarts/lib/echarts');
-var Path = require("zrender/lib/graphic/Path");
+var echarts = _echarts3;
 var graphic = echarts.graphic;
 
 var vec2 = echarts.vector;

@@ -81,12 +81,12 @@
     var option = {
 
         xAxis: {
-            type: 'value',
+            type: 'category',
+            data: getLData(),
             splitLine: { show: false }
         },
         yAxis: {
-            type: 'category',
-            data: getLData(),
+            type: 'value',
             splitLine: { show: false },
         },
         legend: {
@@ -103,7 +103,7 @@
             },
             type: 'bar3d',
             name: '邮件营销',
-            // barWidth: 25,
+            // barWidth: 35,
             // barType: 'cylinder',
             itemStyle: {
                 normal: {

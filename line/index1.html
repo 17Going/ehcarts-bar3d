@@ -11,7 +11,7 @@
     </script>
     <!-- <script src="https://cdn.bootcss.com/echarts/3.8.4/echarts.js"></script> -->
     <!-- <script src="https://cdn.bootcss.com/require.js/2.1.20/require.js"></script> -->
-    <script src="echarts.js"></script>
+    <script src="echarts.all.js"></script>
     <script src='../dist/echarts-graph3d.js'></script>
 </head>
 
@@ -23,7 +23,7 @@
             width: 100%;
             height: 100%;
             margin: 0;
-            background-color: #333;
+            /* background-color: #333; */
         }
 
         #main {
@@ -34,17 +34,17 @@
     <div id="main"></div>
 </body>
 <script>
-    var chart = echarts.init(document.getElementById('main'), null, {
+    var chart = _echarts3.init(document.getElementById('main'), null, {
         renderer: 'canvas'
     });
 
     var num = 8;
     function getData() {
         var result = [];
-        for (var i = 0; i < num - 4; i++) {
+        for (var i = 0; i < num; i++) {
             result.push(Math.floor(400 * Math.random()))
         }
-        result.push(400, 200, 400, 400);
+        // result.push(400, 200, 400, 400);
         return result;
     }
 
@@ -85,9 +85,9 @@
         //     bottom: '3%',
         //     containLabel: true
         // },
-        // dataZoom:{
+        dataZoom: {
 
-        // },
+        },
         xAxis: [
             {
                 type: 'category',
@@ -98,15 +98,68 @@
         ],
         yAxis: [
             {
-                splitLine: { show: false },
-                type: 'value'
+                "type": "value",
+                "axisLabel": {
+                    "show": true,
+                    "textStyle": {
+                        "color": "#36383c",
+                        "fontSize": 12
+                    },
+                },
+                "axisLine": {
+                    "lineStyle": {
+                        "color": "#000",
+                        "width": 1,
+                        "type": "solid"
+                    },
+                    "show": true,
+                    "onZeroAxisIndex": null,
+                    "symbol": ["none", "none"],
+                    "symbolSize": [10, 15]
+                },
+                "axisTick": {
+                    "show": true,
+                    "lineStyle": {
+                        "color": "#cccccc",
+                        "width": 3
+                    },
+                    "length":3,
+                    "inside": false
+                },
+                "splitLine": {
+                    "lineStyle": {
+                        "color": "#cccccc",
+                        "width": 1,
+                        "type": "dashed"
+                    },
+                    "show": true
+                },
+                // "min": "auto",
+                // "max": "auto",
+                "splitNumber": 5,
+                "boundaryGap": [0, 0],
+                "zlevel": 0,
+                "z": 0,
+                "inverse": false,
+                "nameLocation": "end",
+                "nameRotate": null,
+                "nameTruncate": {
+                    "maxWidth": null,
+                    "ellipsis": "...",
+                    "placeholder": "."
+                },
+                "silent": false,
+                "triggerEvent": false,
+                "tooltip": {
+                    "show": false
+                }
             }
         ],
+        stack: true,
         series: [
             {
                 name: '邮件营销',
                 type: 'area3d',
-                stack: 'll',
                 label: {
                     normal: {
                         show: true,
@@ -114,34 +167,92 @@
                         // position: 'inside' // right inside insideRight insideLeft
                     }
                 },
-
-                symbolSize: 8,
-                symbol: 'coils',
-                // symbolOffset: [0, -35],
-                areaStyle: {
+                itemStyle: {
                     normal: {
-                        // color: new echarts.graphic.LinearGradient(
-                        //     0, 0, 0, 1,
-                        //     [
-                        //         { offset: 1, color: '#000' },
-                        //         { offset: 0, color: '#087a83' }
-                        //     ]
-                        // ),
-                        color: '#087a83',
-                        // borderColor: '#087a83',
-                        faceWidth: 30,
-                        // opacity: 0.3
-                        // topFaceColor: 'red'
+                        color: new _echarts3.graphic.LinearGradient(
+                            0, 0, 0, 1,
+                            [
+                                { offset: 1, color: '#0b3649' },
+                                { offset: 0, color: '#1595a0' }
+                            ]
+                        ),
+                        borderColor:  new _echarts3.graphic.LinearGradient(
+                            0, 0, 0, 1,
+                            [
+                                { offset: 1, color: '#0b3649' },
+                                { offset: 0, color: '#1595a0' }
+                            ]
+                        ),
+                        // color: '#029ED9'
                     }
                 },
+                markLine: {
+                    symbol: 'none',
+                    data: [{
+                        yAxis: 200
+                    }]
+                },
+                symbol: 'emptycircle',
+                symbolLineColor: '#000',
+                symbolLineWidth: 2,
+                symbolLineType: 'solid',
+                faceWidth: 6,
+                smooth: true,
+                data: getData()
+            }/* ,
+            {
+                name: '邮件营销',
+                type: 'area3d',
+                label: {
+                    normal: {
+                        show: true,
+                        // formatter: '{b}',
+                        // position: 'inside' // right inside insideRight insideLeft
+                    }
+                },
+                itemStyle: {
+                    normal: {
+                        // color: new _echarts3.graphic.LinearGradient(
+                        //     0, 0, 0, 1,
+                        //     [
+                        //         { offset: 1, color: '#0b3649' },
+                        //         { offset: 0, color: '#1595a0' }
+                        //     ]
+                        // )
+                        color: '#81FF38'
+                    }
+                },
+                markLine: {
+                    symbol: 'none',
+                    data: [{
+                        yAxis: 200
+                    }]
+                },
+                symbol: 'emptycircle',
+                symbolLineColor: '#000',
+                symbolLineWidth: 1,
+                symbolLineType: 'solid',
+                faceWidth: 6,
                 smooth: true,
                 data: getData()
             }
-        ]
+         */]
     };
 
     window.chart = chart;
     chart.setOption(option);
+
+    // setTimeout(function () {
+    //     chart.setOption({
+    //         series: [{
+    //             itemStyle: {
+    //                 normal: {
+    //                     color: ''
+    //                 }
+    //             }
+    //         }]
+    //     });
+    // }, 10000)
 </script>
 
 </html>

@@ -1,5 +1,5 @@
 
-var echarts = require('echarts/lib/echarts');
+var echarts = _echarts3;
 
 var _default = echarts.extendSeriesModel({
     type: 'series.area3d',
@@ -31,12 +31,7 @@ var _default = echarts.extendSeriesModel({
         //     normal: {},
         //     emphasis: {}
         // },
-        areaStyle: {
-            normal: {
-                faceWidth: 10, // 面宽
-                type: 'solid'
-            }
-        },
+        faceWidth: 6, // 面宽
         // areaStyle: {},
         // false, 'start', 'end', 'middle'
         step: false,
@@ -46,13 +41,18 @@ var _default = echarts.extendSeriesModel({
         // 拐点图形类型
         symbol: 'emptyCircle',
         // 拐点图形大小
-        symbolSize: 4,
+        symbolSize: 10,
         // 拐点图形旋转控制
         symbolRotate: null,
         // 是否显示 symbol, 只有在 tooltip hover 的时候显示
         showSymbol: true,
         // 标志图形默认只有主轴显示（随主轴标签间隔隐藏策略）
         showAllSymbol: false,
+        symbolLineType: 'dashed', //solid dashed dotted 
+        symbolLineWidth: 2,
+        // symbolLineColor: '',
+        symbolOffset: [0, -35],
+        // symbolLineColor: '#000',
         // 是否连接断点
         connectNulls: false,
         // 数据过滤，'average', 'max', 'min', 'sum'

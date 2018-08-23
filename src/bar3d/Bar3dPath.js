@@ -1,4 +1,4 @@
-var echarts = require('echarts/lib/echarts');
+var echarts = _echarts3;
 
 /**
  * 绘制4边形
@@ -28,10 +28,11 @@ var Quadrangle = echarts.graphic.extendShape({
 
 var Ellipse = echarts.graphic.extendShape({
     type: 'ellipse',
-
     shape: {
-        cx: 0, cy: 0,
-        rx: 0, ry: 0
+        cx: 0, 
+        cy: 0,
+        rx: 0, 
+        ry: 0
     },
 
     buildPath: function (ctx, shape) {

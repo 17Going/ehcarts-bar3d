@@ -2,7 +2,7 @@ var webpack = require('webpack');
 module.exports = {
     mode: 'development',
     entry: {
-        'echarts-graph3d': __dirname + '/index.js'
+        'echarts-bar3d': __dirname + '/index.js'
     },
     plugins: [
         new webpack.DefinePlugin({
@@ -12,7 +12,7 @@ module.exports = {
     ],
     output: {
         libraryTarget: 'umd',
-        library: 'echarts-graph3d',
+        library: 'echarts-bar3d',
         path: __dirname + '/dist',
         filename: '[name].js'
     },
